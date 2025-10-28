@@ -231,12 +231,12 @@ CREATE INDEX idx_productos_sku ON public.productos USING btree (sku);```
 
 ```
 
-### 🔹 6. Iniciar el backend
+### 🔹 7. Iniciar el backend
 ```bash
 npm run dev
 ```
 
-### 🔹 7. Iniciar el frontend
+### 🔹 8. Iniciar el frontend
 ```bash
 cd ../frontend
 npm run dev
