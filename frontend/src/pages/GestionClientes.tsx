@@ -106,17 +106,19 @@ const GestionClientesPage = () => {
                 <TableHead>
                 <TableRow>
                     <TableCell sx={{ fontWeight: 'bold' }}>Nombre</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }}>RUC / C.I.</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Contacto</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Cliente Desde</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }} align="center">N° Compras</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }} align="right">Gasto Total (USD)</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }} align="right">Acciones</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }} align="center">Gasto Total (USD)</TableCell>
+                    <TableCell sx={{ fontWeight: 'bold' }} align="center">Acciones</TableCell>
                 </TableRow>
                 </TableHead>
                 <TableBody>
                 {clientes.map((cliente) => (
                     <TableRow key={cliente.id} hover>
                     <TableCell>{cliente.nombre}</TableCell>
+                    <TableCell>{cliente.ruc || 'N/A'}</TableCell>
                     <TableCell>{cliente.email || cliente.telefono || 'N/A'}</TableCell>
                     <TableCell>{formatDate(cliente.fecha_registro)}</TableCell>
                     <TableCell align="center">{cliente.numero_de_compras}</TableCell>

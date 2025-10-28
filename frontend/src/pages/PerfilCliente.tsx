@@ -20,6 +20,7 @@ interface Venta {
 }
 interface ClienteDetails {
     nombre: string;
+    ci: string;
     email: string;
     telefono: string;
     fecha_registro: string;
@@ -60,12 +61,13 @@ const PerfilClientePage = () => {
                 <Button component={RouterLink} to="/clientes" variant="outlined">Volver a la Lista</Button>
             </Box>
 
-            {/* --- LAYOUT CORREGIDO CON BOX --- */}
+            {/* --- LAYOUT CON BOX --- */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', mx: -1.5 }}>
                 {/* Columna Izquierda */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' }, px: 1.5 }}>
                     <Paper sx={{ p: 2, mb: 3 }}>
                         <Typography variant="h6" gutterBottom>Información de Contacto</Typography>
+                        <Typography variant="body1"><strong>RUC / CI:</strong> {cliente.ci || 'N/A'}</Typography>
                         <Typography variant="body1"><strong>Email:</strong> {cliente.email || 'N/A'}</Typography>
                         <Typography variant="body1"><strong>Teléfono:</strong> {cliente.telefono || 'N/A'}</Typography>
                         <Typography variant="body1"><strong>Cliente desde:</strong> {formatDate(cliente.fecha_registro)}</Typography>
