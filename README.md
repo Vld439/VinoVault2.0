@@ -55,6 +55,22 @@ Antes de ejecutar el backend, asegurate de crear la base de datos manualmente en
 Podés hacerlo desde **pgAdmin**, **DBeaver**, o la terminal de PostgreSQL:
 
 ```sql
+-- Opcional: Elimina la base de datos si ya existe para empezar de cero
+-- DROP DATABASE IF EXISTS vino_stock;
+
+CREATE DATABASE vino_stock
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'Spanish_Spain.1252'
+    LC_CTYPE = 'Spanish_Spain.1252'
+    LOCALE_PROVIDER = 'libc'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1;
+```
+### 🔹 6. Crear las tablas
+Una vez creada la base de datos, conéctate a ella y ejecuta el siguiente script completo para crear todas las tablas, secuencias, claves primarias y foráneas.
+```sql
 -- Creación de Tablas
 CREATE TABLE public.almacenes (
     id integer NOT NULL,
@@ -211,14 +227,9 @@ ALTER TABLE ONLY public.ventas
 
 -- Creación de Índices
 CREATE INDEX idx_productos_nombre ON public.productos USING btree (nombre);
-CREATE INDEX idx_productos_sku ON public.productos USING btree (sku);
-```
-### 🔹 6. Iniciar el backend
-Una vez creada la base de datos, conéctate a ella y ejecuta el siguiente script completo para crear todas las tablas, secuencias, claves primarias y foráneas.
-```bash
-npm run dev
-```
+CREATE INDEX idx_productos_sku ON public.productos USING btree (sku);```
 
+```
 
 ### 🔹 6. Iniciar el backend
 ```bash
