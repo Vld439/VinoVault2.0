@@ -1,4 +1,4 @@
-# 🍷 Vino Stock App
+# 🍷 VinoVault
 
 **Proyecto:** VinoVault: Aplicación web para gestión de stock y ventas de vinos.  
 **Autor:** Vladimir De Andrade  
