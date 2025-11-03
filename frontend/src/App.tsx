@@ -9,6 +9,7 @@ import HistorialPage from './pages/Historial';
 import GestionUsuariosPage from './pages/GestionUsuarios';
 import GestionClientesPage from './pages/GestionClientes';
 import PerfilClientePage from './pages/PerfilCliente';
+import ReportesPage from './pages/ReportesPage';
 
 function App() {
   const { notification, handleCloseNotification } = useAuth();
@@ -36,6 +37,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/historial" element={<HistorialPage />} />
+            <Route path="/reportes" element={<ReportesPage />} />
             <Route path="/admin/usuarios" element={<GestionUsuariosPage />} />
             <Route path="/clientes" element={<GestionClientesPage />} />
             <Route path="/clientes/:id" element={<PerfilClientePage />} />

@@ -170,6 +170,9 @@ const DashboardPage = () => {
             <Button component={RouterLink} to="/historial" variant="contained" color="primary">
                 Ver Historial
             </Button>
+            <Button component={RouterLink} to="/reportes" variant="contained" color="primary">
+                Ver Reportes
+            </Button>
             <Button variant="contained" color="secondary" onClick={logout}>
                 Cerrar Sesión
             </Button>

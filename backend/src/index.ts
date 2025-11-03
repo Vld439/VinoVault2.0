@@ -13,6 +13,7 @@ import inventarioRoutes from './routes/inventario.routes.js';
 import clienteRoutes from './routes/clientes.routes.js';
 import ventaRoutes from './routes/ventas.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
+import reportesRoutes from './routes/reportes.routes.js';
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use('/api/inventario', inventarioRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/ventas', ventaRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reportes', reportesRoutes);
 
 app.get('/api/health', async (req: Request, res: Response) => {
     try {
