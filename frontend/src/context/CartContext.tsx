@@ -25,7 +25,7 @@ interface CartContextType {
   removeFromCart: (productId: number) => void;
   updateCartItemQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
-  getCartTotal: () => number;
+ getCartSubtotal: () => number;
   getCartItemCount: () => number;
 }
 
@@ -81,7 +81,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCartItems([]);
   }, []);
 
-  const getCartTotal = useCallback(() => {
+  const getCartSubtotal = useCallback(() => {
     return cartItems.reduce((total, item) => {
       let price = parseFloat(item.precio_venta);
       if (currency === 'PYG' && item.precio_venta_pyg) {
@@ -105,9 +105,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     removeFromCart,
     updateCartItemQuantity,
     clearCart,
-    getCartTotal,
+   getCartSubtotal,
     getCartItemCount
-  }), [cartItems, currency, addToCart, removeFromCart, updateCartItemQuantity, clearCart, getCartTotal, getCartItemCount]);
+  }), [cartItems, currency, addToCart, removeFromCart, updateCartItemQuantity, clearCart,getCartSubtotal, getCartItemCount]);
 
   return (
     <CartContext.Provider value={contextValue}>

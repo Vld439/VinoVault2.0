@@ -1,11 +1,11 @@
 // src/pages/PerfilCliente.tsx
 import { useEffect, useState } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
-import { Container, Typography, Box, Paper, CircularProgress, Alert, Button, Divider } from '@mui/material';
+import { Container, Typography, Box, Paper, CircularProgress, Alert, Button, Divider, Chip } from '@mui/material';
 import { useAuth, axiosInstance } from '../context/AuthContext';
 import { formatCurrency } from '../utils/formatCurrency';
 
-// Interfaces para la data que esperamos
+
 interface VentaItem {
     producto_nombre: string;
     cantidad: number;
@@ -20,10 +20,11 @@ interface Venta {
 }
 interface ClienteDetails {
     nombre: string;
-    ci: string;
     email: string;
     telefono: string;
+    ruc: string;
     fecha_registro: string;
+    es_extranjero: boolean; 
     gasto_total_usd: string;
     gasto_total_pyg: string;
     gasto_total_brl: string;
@@ -57,17 +58,21 @@ const PerfilClientePage = () => {
     return (
         <Container maxWidth="lg" sx={{ my: 4 }}>
             <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h4" component="h1">{cliente.nombre}</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="h4" component="h1">{cliente.nombre}</Typography>
+                    {cliente.es_extranjero && (
+                        <Chip label="Extranjero" color="info" variant="outlined" />
+                    )}
+                </Box>
                 <Button component={RouterLink} to="/clientes" variant="outlined">Volver a la Lista</Button>
             </Box>
 
-            {/* --- LAYOUT CON BOX --- */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', mx: -1.5 }}>
                 {/* Columna Izquierda */}
                 <Box sx={{ width: { xs: '100%', md: '33.33%' }, px: 1.5 }}>
                     <Paper sx={{ p: 2, mb: 3 }}>
                         <Typography variant="h6" gutterBottom>Información de Contacto</Typography>
-                        <Typography variant="body1"><strong>RUC / CI:</strong> {cliente.ci || 'N/A'}</Typography>
+                        <Typography variant="body1"><strong>RUC / CI:</strong> {cliente.ruc || 'N/A'}</Typography>
                         <Typography variant="body1"><strong>Email:</strong> {cliente.email || 'N/A'}</Typography>
                         <Typography variant="body1"><strong>Teléfono:</strong> {cliente.telefono || 'N/A'}</Typography>
                         <Typography variant="body1"><strong>Cliente desde:</strong> {formatDate(cliente.fecha_registro)}</Typography>

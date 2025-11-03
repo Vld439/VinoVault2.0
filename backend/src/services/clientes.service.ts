@@ -12,6 +12,7 @@ export const getAllClientesWithStats = async () => {
             c.telefono,
             c.ruc,
             c.fecha_registro,
+            c.es_extranjero,
             COUNT(v.id) AS numero_de_compras,
             COALESCE(SUM(v.total), 0) AS gasto_total_usd
         FROM
@@ -28,19 +29,18 @@ export const getAllClientesWithStats = async () => {
 };
 
 export const createCliente = async (data: any) => {
-    const { nombre, ruc, telefono, email } = data;
+    const { nombre, ruc, telefono, email, es_extranjero } = data;
     const result = await pool.query(
-        'INSERT INTO clientes (nombre, ruc, telefono, email) VALUES ($1, $2, $3, $4) RETURNING *',
-        [nombre, ruc, telefono, email]
+        'INSERT INTO clientes (nombre, ruc, telefono, email, es_extranjero) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [nombre, ruc, telefono, email, es_extranjero || false] // Usa el valor recibido o 'false' por defecto
     );
     return result.rows[0];
 };
-
 export const updateClienteById = async (id: number, data: any) => {
-    const { nombre, ruc, telefono, email } = data;
+    const { nombre, ruc, telefono, email, es_extranjero } = data;
     const result = await pool.query(
-        'UPDATE clientes SET nombre = $1, ruc = $2, telefono = $3, email = $4 WHERE id = $5 RETURNING *',
-        [nombre, ruc, telefono, email, id]
+        'UPDATE clientes SET nombre = $1, ruc = $2, telefono = $3, email = $4, es_extranjero = $5 WHERE id = $6 RETURNING *',
+        [nombre, ruc, telefono, email, es_extranjero || false, id] // Usa el valor recibido o 'false' por defecto
     );
     if (result.rowCount === 0) throw new Error('Cliente no encontrado');
     return result.rows[0];
@@ -67,7 +67,7 @@ export const getClienteDetailsById = async (id: number) => {
 
     const query = `
         SELECT
-            c.id, c.nombre, c.ruc, c.telefono, c.email, c.fecha_registro,
+            c.id, c.nombre, c.es_extranjero, c.ruc, c.telefono, c.email, c.fecha_registro,
             
             COALESCE((
                 SELECT SUM(

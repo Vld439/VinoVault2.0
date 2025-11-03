@@ -1,13 +1,20 @@
+// src/components/EditClientModal.tsx
 import { useState, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
+import { 
+  Dialog, DialogTitle, DialogContent, DialogActions, 
+  Button, TextField, 
+  FormControlLabel, Checkbox 
+} from '@mui/material';
 import { useAuth, axiosInstance } from '../context/AuthContext';
 
+// Interfaz para el objeto Cliente
 interface Cliente {
   id: number;
   nombre: string;
   ruc: string;
   telefono: string;
   email: string;
+  es_extranjero?: boolean; 
 }
 
 interface EditClientModalProps {
@@ -23,6 +30,7 @@ const EditClientModal = ({ open, onClose, onClientUpdated, clientToEdit }: EditC
   const [ruc, setRuc] = useState('');
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
+  const [esExtranjero, setEsExtranjero] = useState(false);
 
   useEffect(() => {
     if (clientToEdit) {
@@ -30,13 +38,20 @@ const EditClientModal = ({ open, onClose, onClientUpdated, clientToEdit }: EditC
       setRuc(clientToEdit.ruc || '');
       setTelefono(clientToEdit.telefono || '');
       setEmail(clientToEdit.email || '');
+      setEsExtranjero(clientToEdit.es_extranjero || false);
     }
   }, [clientToEdit]);
 
   const handleSubmit = async () => {
     if (!clientToEdit) return;
     try {
-      await axiosInstance.put(`/clientes/${clientToEdit.id}`, { nombre, ruc, telefono, email });
+      await axiosInstance.put(`/clientes/${clientToEdit.id}`, { 
+        nombre, 
+        ruc, 
+        telefono, 
+        email, 
+        es_extranjero: esExtranjero
+      });
       showNotification('Cliente actualizado.', 'success');
       onClientUpdated();
       onClose();
@@ -53,6 +68,19 @@ const EditClientModal = ({ open, onClose, onClientUpdated, clientToEdit }: EditC
         <TextField margin="dense" label="RUC / C.I." fullWidth value={ruc} onChange={(e) => setRuc(e.target.value)} />
         <TextField margin="dense" label="Teléfono" fullWidth value={telefono} onChange={(e) => setTelefono(e.target.value)} />
         <TextField margin="dense" label="Email" type="email" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
+        {/*Checkbox*/}
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={esExtranjero}
+              onChange={(e) => setEsExtranjero(e.target.checked)}
+              name="esExtranjero"
+              color="primary"
+            />
+          }
+          label="¿Es Extranjero?"
+          sx={{ mt: 1 }}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>

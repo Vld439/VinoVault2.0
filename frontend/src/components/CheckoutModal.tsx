@@ -32,6 +32,7 @@ import { formatCurrency } from '../utils/formatCurrency';
 interface Cliente {
   id: number;
   nombre: string;
+  es_extranjero: boolean;
 }
 interface Almacen {
   id: number;
@@ -45,13 +46,19 @@ interface CheckoutModalProps {
 }
 
 const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) => {
-  const { cartItems, removeFromCart, updateCartItemQuantity, getCartTotal, clearCart, currency, setCurrency } = useCart();
+  const { cartItems, removeFromCart, updateCartItemQuantity, getCartSubtotal, clearCart, currency, setCurrency } = useCart();
   const { showNotification } = useAuth();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [selectedCliente, setSelectedCliente] = useState('');
   const [selectedAlmacen, setSelectedAlmacen] = useState('');
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
+
+  // Estados para el cálculo de impuestos
+  const [subtotal, setSubtotal] = useState(0);
+  const [impuesto, setImpuesto] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [clienteEsExtranjero, setClienteEsExtranjero] = useState(false);
 
   const fetchClientes = useCallback(async () => {
     try {
@@ -71,6 +78,24 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
     }
   }, [open, fetchClientes, showNotification]);
 
+  // Efecto para recalcular el total cuando algo cambia
+  useEffect(() => {
+    const newSubtotal = getCartSubtotal();
+    const newImpuesto = clienteEsExtranjero ? 0 : newSubtotal * 0.10; // 10% de IVA si no es extranjero
+    const newTotal = newSubtotal + newImpuesto;
+    
+    setSubtotal(newSubtotal);
+    setImpuesto(newImpuesto);
+    setTotal(newTotal);
+  }, [cartItems, currency, clienteEsExtranjero, getCartSubtotal]);
+
+  // Actualiza el estado 'es_extranjero' cuando se selecciona un cliente
+  const handleSelectCliente = (clienteId: string) => {
+    setSelectedCliente(clienteId);
+    const cliente = clientes.find(c => c.id === Number(clienteId));
+    setClienteEsExtranjero(cliente?.es_extranjero || false);
+  };
+
   const handleConfirmVenta = async () => {
     if (!selectedCliente || !selectedAlmacen) {
       showNotification('Por favor, selecciona un cliente y un almacén.', 'warning');
@@ -80,13 +105,15 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
     const ventaData = {
       cliente_id: selectedCliente,
       almacen_id: selectedAlmacen,
-      total: getCartTotal(),
       moneda: currency,
       items: cartItems.map(item => ({
         producto_id: item.id,
         cantidad: item.quantity,
         precio_unitario: item.precio_venta // Siempre guardamos el precio base en USD
       })),
+      subtotal: subtotal,
+      impuesto: impuesto,
+      total: total,
     };
 
     try {
@@ -122,7 +149,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                     let price = item.precio_venta;
                     if (currency === 'PYG' && item.precio_venta_pyg) { price = item.precio_venta_pyg; }
                     if (currency === 'BRL' && item.precio_venta_brl) { price = item.precio_venta_brl; }
-                    const subtotal = parseFloat(price) * item.quantity;
+                    const itemSubtotal = parseFloat(price) * item.quantity;
                     
                     return (
                         <TableRow key={item.id}>
@@ -148,7 +175,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                             </TableCell>
                             <TableCell align="right">{formatCurrency(price, currency)}</TableCell>
                             <TableCell align="right" sx={{ fontWeight: 'bold' }}>
-                            {formatCurrency(subtotal, currency)}
+                            {formatCurrency(itemSubtotal, currency)}
                             </TableCell>
                             <TableCell align="center">
                             <IconButton edge="end" aria-label="delete" onClick={() => removeFromCart(item.id)}>
@@ -162,7 +189,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
             </Table>
           </TableContainer>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 2, gap: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', mt: 2, gap: 2 }}>
             <FormControl sx={{ minWidth: 120 }} size="small">
               <InputLabel>Moneda</InputLabel>
               <Select
@@ -175,9 +202,17 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                 <MenuItem value="BRL">BRL</MenuItem>
               </Select>
             </FormControl>
-            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-              Total: {formatCurrency(getCartTotal(), currency)}
-            </Typography>
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography variant="body1">
+                Subtotal: {formatCurrency(subtotal, currency)}
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                IVA (10%): {formatCurrency(impuesto, currency)}
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                Total: {formatCurrency(total, currency)}
+              </Typography>
+            </Box>
           </Box>
 
           <Divider sx={{ my: 3 }} />
@@ -189,7 +224,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                 labelId="cliente-select-label"
                 value={selectedCliente}
                 label="Cliente *"
-                onChange={(e) => setSelectedCliente(e.target.value)}
+                onChange={(e) => handleSelectCliente(e.target.value)}
               >
                 {clientes.map(c => <MenuItem key={c.id} value={c.id}>{c.nombre}</MenuItem>)}
               </Select>
@@ -224,6 +259,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
         onClientAdded={(newClient) => {
           fetchClientes();
           setSelectedCliente(String(newClient.id));
+          setClienteEsExtranjero(newClient.es_extranjero || false);
         }}
       />
     </>

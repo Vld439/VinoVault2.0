@@ -1,10 +1,11 @@
 // src/components/AddClientModal.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Alert
+  Button, TextField, Alert,
+  FormControlLabel, Checkbox 
 } from '@mui/material';
-import { axiosInstance, useAuth } from '../context/AuthContext';
+import { useAuth, axiosInstance } from '../context/AuthContext';
 
 interface AddClientModalProps {
   open: boolean;
@@ -18,7 +19,20 @@ const AddClientModal = ({ open, onClose, onClientAdded }: AddClientModalProps) =
   const [ruc, setRuc] = useState('');
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
+  const [esExtranjero, setEsExtranjero] = useState(false); // <-- Nuevo estado
   const [error, setError] = useState('');
+
+  // Limpia el formulario al abrir
+  useEffect(() => {
+    if (open) {
+      setNombre('');
+      setRuc('');
+      setTelefono('');
+      setEmail('');
+      setEsExtranjero(false);
+      setError('');
+    }
+  }, [open]);
 
   const handleSubmit = async () => {
     if (!nombre) {
@@ -28,9 +42,15 @@ const AddClientModal = ({ open, onClose, onClientAdded }: AddClientModalProps) =
     setError('');
 
     try {
-      const response = await axiosInstance.post('/clientes', { nombre, ruc, telefono, email });
+      const response = await axiosInstance.post('/clientes', { 
+        nombre, 
+        ruc, 
+        telefono, 
+        email, 
+        es_extranjero: esExtranjero 
+      });
       showNotification('Cliente creado exitosamente.', 'success');
-      onClientAdded(response.data); // Devuelve el nuevo cliente al componente padre
+      onClientAdded(response.data);
       onClose();
     } catch (err) {
       showNotification('No se pudo crear el cliente.', 'error');
@@ -46,6 +66,19 @@ const AddClientModal = ({ open, onClose, onClientAdded }: AddClientModalProps) =
         <TextField margin="dense" label="RUC / C.I." fullWidth value={ruc} onChange={(e) => setRuc(e.target.value)} />
         <TextField margin="dense" label="Teléfono" fullWidth value={telefono} onChange={(e) => setTelefono(e.target.value)} />
         <TextField margin="dense" label="Email" type="email" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
+        {/* CHECKBOX */}
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={esExtranjero}
+              onChange={(e) => setEsExtranjero(e.target.checked)}
+              name="esExtranjero"
+              color="primary"
+            />
+          }
+          label="¿Es Extranjero?"
+          sx={{ mt: 1 }}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
