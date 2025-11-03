@@ -15,9 +15,10 @@
     "@mui/material": "^7.3.2",
     "axios": "^1.12.2",
     "jwt-decode": "^4.0.0",
-     "react": "18.2.0",
+    "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-router-dom": "^7.9.3"
+    "react-router-dom": "^7.9.3",
+    "react-to-print": "^3.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 
+// --- Interfaces ---
 interface Product {
   id: number;
   nombre: string;
@@ -11,6 +12,7 @@ interface Product {
   precio_venta_brl?: string;
 }
 
+// Asegúrate de que esta línea tenga "export"
 export interface CartItem extends Product {
   quantity: number;
 }
@@ -25,7 +27,7 @@ interface CartContextType {
   removeFromCart: (productId: number) => void;
   updateCartItemQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
- getCartSubtotal: () => number;
+  getCartSubTotal: () => number;
   getCartItemCount: () => number;
 }
 
@@ -81,7 +83,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCartItems([]);
   }, []);
 
-  const getCartSubtotal = useCallback(() => {
+  const getCartSubTotal = useCallback(() => {
     return cartItems.reduce((total, item) => {
       let price = parseFloat(item.precio_venta);
       if (currency === 'PYG' && item.precio_venta_pyg) {
@@ -105,9 +107,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     removeFromCart,
     updateCartItemQuantity,
     clearCart,
-   getCartSubtotal,
+   getCartSubTotal,
     getCartItemCount
-  }), [cartItems, currency, addToCart, removeFromCart, updateCartItemQuantity, clearCart,getCartSubtotal, getCartItemCount]);
+  }), [cartItems, currency, addToCart, removeFromCart, updateCartItemQuantity, clearCart,getCartSubTotal, getCartItemCount]);
 
   return (
     <CartContext.Provider value={contextValue}>
