@@ -167,7 +167,7 @@ const HistorialPage = () => {
                                             <IconButton
                                                 onClick={() => handlePrintReceipt(venta)}
                                                 color="primary"
-                                                title="Imprimir Recibo"
+                                                title="Imprimir comprobante"
                                                 size="small"
                                             >
                                                 <PrintIcon />

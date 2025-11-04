@@ -149,7 +149,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
   // Configuración profesional de react-to-print
   const handlePrint = useReactToPrint({
     contentRef: receiptRef,
-    documentTitle: `Venta-${saleSuccessData?.ventaId || 'recibo'}`,
+    documentTitle: `Venta-${saleSuccessData?.ventaId || 'comprobante'}`,
     pageStyle: `
       @page {
         size: A4;
@@ -200,7 +200,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       }
     `,
     onBeforePrint: () => {
-      console.log('Preparando impresión del recibo...');
+      console.log('Preparando impresión del comprobante...');
       return Promise.resolve();
     },
     onAfterPrint: () => {
@@ -215,7 +215,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
     setSelectedAlmacen('');
   };
 
-  // Componente visual para el Recibo (siempre tema claro)
+  // Componente visual para el Comprobante (siempre tema claro)
   const renderReceipt = () => (
     <Box ref={receiptRef} sx={{ 
       p: 3, 
@@ -229,10 +229,10 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
           <img src={logo} alt="Logo" style={{ height: '80px', maxWidth: '200px' }} />
         </Box>
         <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#000' }}>
-          RECIBO DE VENTA
+          COMPROBANTE DE VENTA
         </Typography>
         <Typography variant="h6" sx={{ color: '#666', mt: 1 }}>
-          Vino Vault - Sistema de Gestión
+          VinoVault - Sistema de Gestión
         </Typography>
       </Box>
 
@@ -342,10 +342,10 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
         <DialogContent>
           
           {saleSuccessData ? (
-            // --- VISTA DE ÉXITO Y RECIBO ---
+            //VISTA DE ÉXITO Y COMPROBANTE
             renderReceipt()
           ) : (
-            // --- VISTA DE CHECKOUT ---
+            //VISTA DE CHECKOUT
             <Box>
               <Typography variant="h6" gutterBottom>Resumen del Carrito</Typography>
               <TableContainer component={Paper}>
@@ -466,7 +466,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
           {saleSuccessData ? (
             <>
               <Button onClick={handleCloseModal}>Cerrar</Button>
-              <Button onClick={handlePrint} variant="contained" color="primary">Imprimir Recibo</Button>
+              <Button onClick={handlePrint} variant="contained" color="primary">Imprimir Comprobante</Button>
             </>
           ) : (
             <>

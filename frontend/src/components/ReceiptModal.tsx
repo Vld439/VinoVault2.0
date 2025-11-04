@@ -50,7 +50,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     // Configuración profesional de react-to-print (igual que CheckoutModal)
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `Venta-${venta?.id || 'recibo'}`,
+        documentTitle: `Venta-${venta?.id || 'comprobante'}`,
         pageStyle: `
             @page {
                 size: A4;
@@ -101,7 +101,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             }
         `,
         onBeforePrint: () => {
-            console.log('Preparando impresión del recibo...');
+            console.log('Preparando impresión del comprobante...');
             return Promise.resolve();
         },
         onAfterPrint: () => {
@@ -119,7 +119,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             <DialogTitle>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <PrintIcon color="primary" />
-                    <Typography variant="h6">Recibo de Venta</Typography>
+                    <Typography variant="h6">Comprobante de Venta</Typography>
                 </Box>
             </DialogTitle>
 
@@ -129,7 +129,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
                             <img 
                                 src={logo} 
-                                alt="VINO STOCK Logo" 
+                                alt="Logo" 
                                 style={{ 
                                     width: '80px', 
                                     height: '80px', 
@@ -137,8 +137,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                                 }} 
                             />
                             <Box>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#8B0000' }}>
-                                    VINO STOCK
+                                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#4d156bff' }}>
+                                    VINOVAULT
                                 </Typography>
                                 <Typography variant="subtitle1" color="text.secondary">
                                     Sistema de Gestión de Inventario
@@ -153,10 +153,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                         <Box sx={{ display: 'flex', gap: 4, mb: 3 }}>
                             <Box sx={{ flex: 1 }}>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                    RECIBO DE VENTA
+                                    COMPROBANTE DE VENTA
                                 </Typography>
                                 <Typography variant="body2">
-                                    <strong>Recibo #:</strong> {venta?.id}
+                                    <strong>Comprobante #:</strong> {venta?.id}
                                 </Typography>
                                 <Typography variant="body2">
                                     <strong>Fecha:</strong> {venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
@@ -242,7 +242,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                             ¡Gracias por su compra!
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                            VINO STOCK - Sistema de Gestión de Inventario
+                            VINOVAULT - Sistema de Gestión de Inventario
                         </Typography>
                         <br />
                         <Typography variant="caption" color="text.secondary">
@@ -269,7 +269,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                     onClick={handlePrint}
                     color="primary"
                 >
-                    Imprimir Recibo
+                    Imprimir Comprobante
                 </Button>
             </DialogActions>
         </Dialog>

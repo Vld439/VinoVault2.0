@@ -134,7 +134,7 @@ const DashboardPage = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <img src={logo} alt="VinoVault Logo" style={{ height: '300px' }} />
+          <img src={logo} alt="Logo" style={{ height: '300px' }} />
           <div>
             <Typography variant="h4" component="h1">
               Dashboard
