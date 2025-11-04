@@ -11,3 +11,13 @@ export const createVenta = async (req: AuthenticatedRequest, res: Response) => {
         res.status(500).json({ message: (error as Error).message });
     }
 };
+
+export const getHistorialVentas = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const historial = await ventaService.obtenerHistorialVentas();
+        res.status(200).json(historial);
+    } catch (error) {
+        console.error('Error al obtener historial de ventas:', error);
+        res.status(500).json({ message: (error as Error).message });
+    }
+};

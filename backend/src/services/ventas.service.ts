@@ -112,3 +112,40 @@ export const anularVenta = async (ventaId: number, adminId: number, adminPasswor
         client.release();
     }
 };
+
+export const obtenerHistorialVentas = async () => {
+    const query = `
+        SELECT 
+            v.id,
+            v.fecha_venta,
+            c.nombre AS cliente_nombre,
+            u.nombre_completo AS usuario_nombre,
+            a.nombre AS almacen_nombre,
+            v.subtotal,
+            COALESCE(v.impuesto, 0) AS impuestos,
+            v.total,
+            (SELECT json_agg(
+                json_build_object(
+                    'nombre_producto', p.nombre,
+                    'cantidad', vi.cantidad,
+                    'precio_unitario', vi.precio_unitario
+                )
+            ) FROM venta_items vi 
+            JOIN productos p ON vi.producto_id = p.id 
+            WHERE vi.venta_id = v.id) as items
+        FROM ventas v
+        JOIN clientes c ON v.cliente_id = c.id
+        JOIN usuarios u ON v.usuario_id = u.id
+        JOIN almacenes a ON v.almacen_id = a.id
+        ORDER BY v.fecha_venta DESC
+        LIMIT 100;
+    `;
+
+    try {
+        const result = await pool.query(query);
+        return result.rows;
+    } catch (error) {
+        console.error("Error al obtener historial de ventas:", error);
+        throw new Error('Error al obtener el historial de ventas.');
+    }
+};
