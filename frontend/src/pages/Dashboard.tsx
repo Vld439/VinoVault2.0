@@ -22,7 +22,16 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  useTheme,
+  useMediaQuery,
+  Stack,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  Divider
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import StatCard from '../components/StatCard';
@@ -61,6 +70,10 @@ const DashboardPage = () => {
   const { cartItems, addToCart, getCartItemCount, currency, setCurrency } = useCart();
   useCustomTheme();
   
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -73,6 +86,7 @@ const DashboardPage = () => {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -119,34 +133,64 @@ const DashboardPage = () => {
 
 
 
+  const navigationItems = [
+    { text: 'Gestionar Clientes', to: '/clientes', icon: 'people' },
+    { text: 'Ver Historial', to: '/historial', icon: 'history' },
+    { text: 'Ver Reportes', to: '/reportes', icon: 'assessment' },
+    ...(user?.rol === 'admin' ? [{ text: 'Gestionar Usuarios', to: '/admin/usuarios', icon: 'admin_panel_settings' }] : []),
+  ];
+
   return (
     <Container maxWidth="xl">
       <Paper 
         elevation={4}
         sx={{ 
-          p: 2, 
-          mt: 4, 
-          mb: 4, 
+          p: { xs: 1.5, sm: 2 }, 
+          mt: { xs: 2, sm: 4 }, 
+          mb: { xs: 2, sm: 4 }, 
           display: 'flex', 
+          flexDirection: { xs: 'column', md: 'row' },
           justifyContent: 'space-between', 
-          alignItems: 'center',
+          alignItems: { xs: 'stretch', md: 'center' },
+          gap: { xs: 2, md: 0 },
           transition: 'background-color 0.3s',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <img src={logo} alt="Logo" style={{ height: '300px' }} />
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: { xs: 1, sm: 2 },
+          justifyContent: { xs: 'center', md: 'flex-start' }
+        }}>
+          <img 
+            src={logo} 
+            alt="Logo" 
+            style={{ 
+              height: isMobile ? '150px' : isTablet ? '200px' : '300px',
+              objectFit: 'contain'
+            }} 
+          />
           <div>
-            <Typography variant="h4" component="h1">
+            <Typography 
+              variant={isMobile ? "h5" : "h4"} 
+              component="h1"
+              sx={{ textAlign: { xs: 'center', md: 'left' } }}
+            >
               Dashboard
             </Typography>
             {user && (
-              <Typography variant="h6">
+              <Typography 
+                variant={isMobile ? "body1" : "h6"}
+                sx={{ textAlign: { xs: 'center', md: 'left' } }}
+              >
                 Usuario: {user.nombre_completo} ({user.rol})
               </Typography>
             )}
           </div>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+
+        {!isMobile && (
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <FormControl size="small" sx={{ minWidth: 100 }}>
               <InputLabel>Moneda</InputLabel>
               <Select
@@ -160,27 +204,102 @@ const DashboardPage = () => {
               </Select>
             </FormControl>
             {user?.rol === 'admin' && (
-              <Button component={RouterLink} to="/admin/usuarios" variant="contained" color="primary">
+              <Button component={RouterLink} to="/admin/usuarios" variant="contained" color="primary" size="small">
                 Gestionar Usuarios
               </Button>
             )}
-            <Button component={RouterLink} to="/clientes" variant="contained" color="primary">
-                Gestionar Clientes
+            <Button component={RouterLink} to="/clientes" variant="contained" color="primary" size="small">
+              Gestionar Clientes
             </Button>
-            <Button component={RouterLink} to="/historial" variant="contained" color="primary">
-                Ver Historial
+            <Button component={RouterLink} to="/historial" variant="contained" color="primary" size="small">
+              Ver Historial
             </Button>
-            <Button component={RouterLink} to="/reportes" variant="contained" color="primary">
-                Ver Reportes
+            <Button component={RouterLink} to="/reportes" variant="contained" color="primary" size="small">
+              Ver Reportes
             </Button>
-            <Button variant="contained" color="secondary" onClick={logout}>
-                Cerrar Sesión
+            <Button variant="contained" color="secondary" onClick={logout} size="small">
+              Cerrar Sesión
             </Button>
-        </Box>
+          </Box>
+        )}
+
+        {isMobile && (
+          <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <FormControl size="small" sx={{ minWidth: 80 }}>
+              <InputLabel>Moneda</InputLabel>
+              <Select
+                value={currency}
+                label="Moneda"
+                onChange={(e) => setCurrency(e.target.value as Currency)}
+              >
+                <MenuItem value="USD">USD</MenuItem>
+                <MenuItem value="PYG">PYG</MenuItem>
+                <MenuItem value="BRL">BRL</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <IconButton 
+              onClick={() => setMobileMenuOpen(true)}
+              color="primary"
+            >
+              <Icon>menu</Icon>
+            </IconButton>
+            
+            <Button 
+              variant="outlined" 
+              color="secondary" 
+              onClick={logout}
+              size="small"
+              startIcon={<Icon>logout</Icon>}
+            >
+              Salir
+            </Button>
+          </Stack>
+        )}
       </Paper>
 
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+      >
+        <Box sx={{ width: 280, pt: 2 }}>
+          <Typography variant="h6" sx={{ px: 2, mb: 2, fontWeight: 'bold' }}>
+            Navegación
+          </Typography>
+          <Divider />
+          <List>
+            {navigationItems.map((item) => (
+              <ListItem 
+                key={item.to}
+                component={RouterLink} 
+                to={item.to}
+                onClick={() => setMobileMenuOpen(false)}
+                sx={{ 
+                  color: 'inherit', 
+                  textDecoration: 'none',
+                  '&:hover': { bgcolor: 'action.hover' }
+                }}
+              >
+                <Icon sx={{ mr: 2, color: 'primary.main' }}>{item.icon}</Icon>
+                <ListItemText primary={item.text} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
+
       {stats && (
-        <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
+        <Box sx={{ 
+          display: 'grid',
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)', 
+            md: 'repeat(3, 1fr)'
+          },
+          gap: { xs: 2, sm: 3 },
+          mb: 4 
+        }}>
           <StatCard 
             title="Ventas de Hoy" 
             value={formatCurrency(stats.ventasHoy[currency.toLowerCase() as keyof typeof stats.ventasHoy], currency)} 
@@ -193,16 +312,25 @@ const DashboardPage = () => {
             icon="wine_bar"
             color="#d32f2f"
           />
-          <StatCard 
-            title="Total de Clientes" 
-            value={stats.totalClientes} 
-            icon="people"
-            color="#ed6c02"
-          />
+          <Box sx={{ gridColumn: { xs: '1', sm: '1 / -1', md: '3' } }}>
+            <StatCard 
+              title="Total de Clientes" 
+              value={stats.totalClientes} 
+              icon="people"
+              color="#ed6c02"
+            />
+          </Box>
         </Box>
       )}
 
-      <Typography variant="h5" sx={{ mb: 2 }}>
+      <Typography 
+        variant={isMobile ? "h6" : "h5"} 
+        sx={{ 
+          mb: 2,
+          fontWeight: 'bold',
+          textAlign: { xs: 'center', sm: 'left' }
+        }}
+      >
         Inventario de Productos
       </Typography>
 
@@ -213,6 +341,7 @@ const DashboardPage = () => {
           label="Buscar por nombre o SKU..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          size={isMobile ? "small" : "medium"}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -248,13 +377,31 @@ const DashboardPage = () => {
         </Box>
       )}
 
-      <Fab color="primary" aria-label="add" sx={{ position: 'fixed', bottom: 32, right: 32 }} onClick={() => setIsAddModalOpen(true)}>
+      <Fab 
+        color="primary" 
+        aria-label="add" 
+        size={isMobile ? "medium" : "large"}
+        sx={{ 
+          position: 'fixed', 
+          bottom: { xs: 16, sm: 32 }, 
+          right: { xs: 16, sm: 32 },
+          zIndex: 1000
+        }} 
+        onClick={() => setIsAddModalOpen(true)}
+      >
         <Icon>add</Icon>
       </Fab>
+      
       <Fab
         color="secondary"
         aria-label="cart"
-        sx={{ position: 'fixed', bottom: 32, left: 32 }}
+        size={isMobile ? "medium" : "large"}
+        sx={{ 
+          position: 'fixed', 
+          bottom: { xs: 80, sm: 96 }, 
+          right: { xs: 16, sm: 32 },
+          zIndex: 1000
+        }}
         onClick={() => setIsCheckoutOpen(true)}
         disabled={cartItems.length === 0}
       >

@@ -12,7 +12,10 @@ import {
   FormControl,
   InputLabel,
   Select,
-  type SelectChangeEvent
+  type SelectChangeEvent,
+  useTheme,
+  useMediaQuery,
+  Stack
 } from '@mui/material';
 import { axiosInstance, useAuth } from '../context/AuthContext';
 
@@ -29,9 +32,10 @@ interface Almacen {
 }
 
 const AddProductModal = ({ open, onClose, onProductAdded }: AddProductModalProps) => {
-  const { showNotification } = useAuth(); // Obtenemos la función de notificación
+  const { showNotification } = useAuth();
   
-  // Estados para los campos del formulario
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [sku, setSku] = useState('');
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
@@ -111,52 +115,150 @@ const AddProductModal = ({ open, onClose, onProductAdded }: AddProductModalProps
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Añadir Nuevo Producto</DialogTitle>
-      <DialogContent>
-        <TextField autoFocus margin="dense" label="SKU *" fullWidth value={sku} onChange={(e) => setSku(e.target.value)} />
-        <TextField margin="dense" label="Nombre *" fullWidth value={nombre} onChange={(e) => setNombre(e.target.value)} />
-        <TextField margin="dense" label="Descripción" fullWidth multiline rows={3} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
-        <TextField margin="dense" label="Precio de Compra" type="number" fullWidth value={precioCompra} onChange={(e) => setPrecioCompra(e.target.value)} />
-        <TextField margin="dense" label="Precio de Venta *" type="number" fullWidth value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} />
-        
-        <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, color: 'text.secondary' }}>Stock Inicial (Opcional)</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      fullWidth 
+      maxWidth="sm"
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: {
+          m: isMobile ? 0 : 2,
+          maxHeight: isMobile ? '100vh' : '90vh'
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        fontSize: isMobile ? '1.25rem' : '1.5rem',
+        py: isMobile ? 2 : 3
+      }}>
+        Añadir Nuevo Producto
+      </DialogTitle>
+      <DialogContent sx={{ 
+        px: isMobile ? 2 : 3,
+        pb: isMobile ? 2 : 3
+      }}>
+        <Stack spacing={isMobile ? 2 : 2.5}>
           <TextField 
-            margin="dense" 
-            label="Cantidad Inicial" 
-            type="number" 
+            autoFocus 
+            label="SKU *" 
             fullWidth 
-            value={stockInicial} 
-            onChange={(e) => setStockInicial(e.target.value)}
+            size={isMobile ? "small" : "medium"}
+            value={sku} 
+            onChange={(e) => setSku(e.target.value)} 
           />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="almacen-select-label">Almacén</InputLabel>
-            <Select
-              labelId="almacen-select-label"
-              value={almacenId}
-              label="Almacén"
-              onChange={(e: SelectChangeEvent) => setAlmacenId(e.target.value)}
-            >
-              <MenuItem value=""><em>Ninguno</em></MenuItem>
-              {almacenes.map((almacen) => (
-                <MenuItem key={almacen.id} value={almacen.id}>{almacen.nombre}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+          <TextField 
+            label="Nombre *" 
+            fullWidth 
+            size={isMobile ? "small" : "medium"}
+            value={nombre} 
+            onChange={(e) => setNombre(e.target.value)} 
+          />
+          <TextField 
+            label="Descripción" 
+            fullWidth 
+            multiline 
+            rows={isMobile ? 2 : 3}
+            size={isMobile ? "small" : "medium"}
+            value={descripcion} 
+            onChange={(e) => setDescripcion(e.target.value)} 
+          />
+          
+          <Stack direction={isMobile ? "column" : "row"} spacing={2}>
+            <TextField 
+              label="Precio de Compra" 
+              type="number" 
+              fullWidth 
+              size={isMobile ? "small" : "medium"}
+              value={precioCompra} 
+              onChange={(e) => setPrecioCompra(e.target.value)} 
+            />
+            <TextField 
+              label="Precio de Venta *" 
+              type="number" 
+              fullWidth 
+              size={isMobile ? "small" : "medium"}
+              value={precioVenta} 
+              onChange={(e) => setPrecioVenta(e.target.value)} 
+            />
+          </Stack>
+          
+          <Typography 
+            variant={isMobile ? "body1" : "subtitle1"} 
+            sx={{ color: 'text.secondary', fontWeight: 'medium' }}
+          >
+            Stock Inicial (Opcional)
+          </Typography>
+          
+          <Stack direction={isMobile ? "column" : "row"} spacing={2}>
+            <TextField 
+              label="Cantidad Inicial" 
+              type="number" 
+              fullWidth 
+              size={isMobile ? "small" : "medium"}
+              value={stockInicial} 
+              onChange={(e) => setStockInicial(e.target.value)}
+            />
+            <FormControl fullWidth>
+              <InputLabel 
+                id="almacen-select-label"
+                size={isMobile ? "small" : "medium"}
+              >
+                Almacén
+              </InputLabel>
+              <Select
+                labelId="almacen-select-label"
+                value={almacenId}
+                label="Almacén"
+                size={isMobile ? "small" : "medium"}
+                onChange={(e: SelectChangeEvent) => setAlmacenId(e.target.value)}
+              >
+                <MenuItem value=""><em>Ninguno</em></MenuItem>
+                {almacenes.map((almacen) => (
+                  <MenuItem key={almacen.id} value={almacen.id}>{almacen.nombre}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        </Stack>
 
         <Box mt={3}>
-          <Button variant="contained" component="label">
-            Subir Imagen
+          <Button 
+            variant="outlined" 
+            component="label"
+            size={isMobile ? "medium" : "large"}
+            sx={{ 
+              py: isMobile ? 1.5 : 2,
+              textTransform: 'none',
+              width: '100%'
+            }}
+          >
+            {imagen ? `📷 ${imagen.name}` : '📷 Seleccionar Imagen'}
             <input type="file" hidden accept="image/*" onChange={handleFileChange} />
           </Button>
-          {imagen && <Typography variant="body2" sx={{ ml: 2, display: 'inline' }}>{imagen.name}</Typography>}
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={handleSubmit} variant="contained">Guardar Producto</Button>
+      <DialogActions sx={{ 
+        px: isMobile ? 2 : 3,
+        py: isMobile ? 2 : 3,
+        gap: 1,
+        flexDirection: isMobile ? 'column' : 'row'
+      }}>
+        <Button 
+          onClick={onClose}
+          size={isMobile ? "medium" : "large"}
+          fullWidth={isMobile}
+        >
+          Cancelar
+        </Button>
+        <Button 
+          onClick={handleSubmit} 
+          variant="contained"
+          size={isMobile ? "medium" : "large"}
+          fullWidth={isMobile}
+        >
+          Guardar Producto
+        </Button>
       </DialogActions>
     </Dialog>
   );
