@@ -157,7 +157,7 @@ export const usePrintReceipt = () => {
                   <div class="receipt-container">
                       <div class="header">
                           <div style="text-align: center; margin-bottom: 15px;">
-                              <img src="${logo}" alt="VinoVault Logo" style="height: 60px; max-width: 200px;" />
+                              <img src="${logo}" alt="VinoVault Logo" style="height: 100px; max-width: 300px;" />
                           </div>
                           <h1>VINOVAULT</h1>
                           <p style="margin: 10px 0; font-size: 18px;">Sistema de Gestión de Inventario</p>
@@ -350,7 +350,7 @@ export const usePrintReceipt = () => {
       <body>
           <div class="receipt-header">
               <div style="text-align: center; margin-bottom: 15px;">
-                  <img src="${logo}" alt="VinoVault Logo" style="height: 60px; max-width: 200px;" />
+                  <img src="${logo}" alt="VinoVault Logo" style="height: 100px; max-width: 300px;" />
               </div>
               <h1 style="color: #1976d2; margin: 0;">VINOVAULT</h1>
               <p style="margin: 5px 0;">Sistema de Gestión de Inventario</p>

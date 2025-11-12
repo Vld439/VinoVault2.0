@@ -168,7 +168,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       <img 
         src={logo} 
         alt="VinoVault Logo" 
-        style={{ height: '60px', maxWidth: '200px', marginBottom: '16px' }}
+        style={{ height: '100px', maxWidth: '300px', marginBottom: '16px' }}
       />
       <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
       <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'success.main', mb: 1 }}>
@@ -182,7 +182,8 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       </Typography>
       
       <Box sx={{ 
-        bgcolor: '#f5f5f5', 
+        bgcolor: 'white', 
+        border: '1px solid #e0e0e0',
         p: 2, 
         borderRadius: 2, 
         mb: 3,

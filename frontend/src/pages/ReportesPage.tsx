@@ -173,7 +173,7 @@ const ReportesPage = () => {
                 <img 
                   src={logo} 
                   alt="VinoVault Logo" 
-                  style={{ height: '60px', maxWidth: '120px' }}
+                  style={{ height: '100px', maxWidth: '300px' }}
                 />
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
@@ -383,7 +383,7 @@ const ReportesPage = () => {
                 <img 
                   src={logo} 
                   alt="VinoVault Logo" 
-                  style={{ height: '60px', maxWidth: '120px' }}
+                  style={{ height: '100px', maxWidth: '300px' }}
                 />
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
