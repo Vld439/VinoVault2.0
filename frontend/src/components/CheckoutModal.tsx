@@ -29,6 +29,7 @@ import {
 import { Print as PrintIcon, CheckCircle } from '@mui/icons-material';
 import AddClientModal from './AddClientModal';
 import { formatCurrency } from '../utils/formatCurrency';
+import logo from '../assets/logo.png';
 import { usePrintReceipt } from '../hooks/usePrintReceipt';
 
 interface Cliente {
@@ -164,6 +165,11 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
 
   const renderSaleSuccess = () => (
     <Box sx={{ textAlign: 'center', py: 3 }}>
+      <img 
+        src={logo} 
+        alt="VinoVault Logo" 
+        style={{ height: '60px', maxWidth: '200px', marginBottom: '16px' }}
+      />
       <CheckCircle sx={{ fontSize: 80, color: 'success.main', mb: 2 }} />
       <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'success.main', mb: 1 }}>
         ¡Venta Completada!

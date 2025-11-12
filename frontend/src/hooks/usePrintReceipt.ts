@@ -1,5 +1,6 @@
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/formatCurrency';
+import logo from '../assets/logo.png';
 
 interface PrintReceiptData {
   ventaId: number;
@@ -153,14 +154,15 @@ export const usePrintReceipt = () => {
               <button class="btn" onclick="window.print()">🖨️ Imprimir</button>
           </div>
           
-          <div class="receipt-container">
-              <div class="header">
-                  <h1>VINOVAULT</h1>
-                  <p style="margin: 10px 0; font-size: 18px;">Sistema de Gestión de Inventario</p>
-                  <h2 style="margin-top: 20px; font-size: 22px; color: #333;">COMPROBANTE DE VENTA</h2>
-              </div>
-
-              <div class="info-section">
+                  <div class="receipt-container">
+                      <div class="header">
+                          <div style="text-align: center; margin-bottom: 15px;">
+                              <img src="${logo}" alt="VinoVault Logo" style="height: 60px; max-width: 200px;" />
+                          </div>
+                          <h1>VINOVAULT</h1>
+                          <p style="margin: 10px 0; font-size: 18px;">Sistema de Gestión de Inventario</p>
+                          <h2 style="margin-top: 20px; font-size: 22px; color: #333;">COMPROBANTE DE VENTA</h2>
+                      </div>              <div class="info-section">
                   <div class="info-row">
                       <strong>N° de Venta:</strong>
                       <span>#${saleData.ventaId}</span>
@@ -347,6 +349,9 @@ export const usePrintReceipt = () => {
       </head>
       <body>
           <div class="receipt-header">
+              <div style="text-align: center; margin-bottom: 15px;">
+                  <img src="${logo}" alt="VinoVault Logo" style="height: 60px; max-width: 200px;" />
+              </div>
               <h1 style="color: #1976d2; margin: 0;">VINOVAULT</h1>
               <p style="margin: 5px 0;">Sistema de Gestión de Inventario</p>
               <h2 style="margin: 15px 0;">COMPROBANTE DE VENTA</h2>
