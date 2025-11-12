@@ -17,7 +17,7 @@ import {
     Paper
 } from '@mui/material';
 import { Print as PrintIcon } from '@mui/icons-material';
-import { useReactToPrint } from 'react-to-print';
+// import { useReactToPrint } from 'react-to-print';
 import logo from '../assets/logo.png';
 
 interface VentaItem {
@@ -47,10 +47,7 @@ interface ReceiptModalProps {
 const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => {
     const printRef = useRef<HTMLDivElement>(null);
 
-    console.log('🖨️ ReceiptModal - Estado:', { open, venta: venta?.id, ventaCompleta: venta });
-
     const handleButtonClick = () => {
-        console.log('🖨️ Botón imprimir clickeado - iniciando handlePrint');
         if (!venta) {
             console.error('❌ No hay datos de venta para imprimir');
             return;
@@ -58,67 +55,185 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
         handlePrint();
     };
 
-    // Configuración profesional de react-to-print
-    const handlePrint = useReactToPrint({
-        contentRef: printRef,
-        documentTitle: `Venta-${venta?.id || 'comprobante'}`,
-        pageStyle: `
-            @page {
-                size: A4;
-                margin: 15mm;
-            }
-            @media print {
-                body {
-                    font-family: 'Arial', sans-serif;
-                    color: #000 !important;
-                    background: white !important;
-                    -webkit-print-color-adjust: exact;
-                    color-adjust: exact;
-                }
-                .MuiTableContainer-root {
-                    box-shadow: none !important;
-                }
-                .MuiTable-root {
-                    border-collapse: collapse !important;
-                }
-                .MuiTableCell-root {
-                    border: 1px solid #000 !important;
-                    padding: 8px !important;
-                    color: #000 !important;
-                    background: white !important;
-                }
-                .MuiTableHead-root .MuiTableCell-root {
-                    background: #f5f5f5 !important;
-                    font-weight: bold !important;
-                }
-                .MuiTypography-root {
-                    color: #000 !important;
-                }
-                .MuiDivider-root {
-                    border-color: #000 !important;
-                }
-                .receipt-header {
-                    text-align: center;
-                    margin-bottom: 20px;
-                }
-                .receipt-details {
-                    margin-bottom: 15px;
-                }
-                .receipt-totals {
-                    margin-top: 15px;
-                    border-top: 2px solid #000;
-                    padding-top: 10px;
-                }
-            }
-        `,
-        onBeforePrint: () => {
-            console.log('🖨️ Preparando impresión del comprobante...');
-            return Promise.resolve();
-        },
-        onAfterPrint: () => {
-            console.log('✅ Impresión completada exitosamente');
-        }
-    });
+    const handlePrint = () => {
+        // Crear una nueva ventana para imprimir
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const printContent = printRef.current;
+        if (!printContent) return;
+
+        // Crear el contenido HTML completo para la impresión
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Comprobante de Venta #${venta?.id}</title>
+                <style>
+                    @page {
+                        size: A4;
+                        margin: 15mm;
+                    }
+                    body {
+                        font-family: Arial, sans-serif;
+                        color: #000;
+                        background: white;
+                        margin: 0;
+                        padding: 20px;
+                        line-height: 1.4;
+                    }
+                    .receipt-header {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        border-bottom: 2px solid #000;
+                        padding-bottom: 15px;
+                    }
+                    .receipt-details {
+                        margin-bottom: 20px;
+                    }
+                    .receipt-flex {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 20px;
+                    }
+                    .receipt-column {
+                        flex: 1;
+                        margin-right: 20px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 20px 0;
+                    }
+                    th, td {
+                        border: 1px solid #000;
+                        padding: 8px;
+                        text-align: left;
+                    }
+                    th {
+                        background: #f5f5f5;
+                        font-weight: bold;
+                    }
+                    .text-right {
+                        text-align: right;
+                    }
+                    .text-center {
+                        text-align: center;
+                    }
+                    .receipt-totals {
+                        border-top: 2px solid #000;
+                        padding-top: 15px;
+                        margin-top: 20px;
+                    }
+                    .total-row {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 5px;
+                    }
+                    .total-final {
+                        font-weight: bold;
+                        font-size: 1.2em;
+                        border-top: 1px solid #000;
+                        padding-top: 10px;
+                    }
+                    .receipt-footer {
+                        text-align: center;
+                        margin-top: 30px;
+                        padding-top: 20px;
+                        border-top: 1px dashed #000;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-header">
+                    <h1 style="color: #1976d2; margin: 0;">VINOVAULT</h1>
+                    <p style="margin: 5px 0;">Sistema de Gestión de Inventario</p>
+                    <h2 style="margin: 15px 0;">COMPROBANTE DE VENTA</h2>
+                </div>
+
+                <div class="receipt-flex">
+                    <div class="receipt-column">
+                        <p><strong>Comprobante #:</strong> ${venta?.id}</p>
+                        <p><strong>Fecha:</strong> ${venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : ''}</p>
+                    </div>
+                    <div class="receipt-column">
+                        <p><strong>Cliente:</strong> ${venta?.cliente_nombre || ''}</p>
+                        <p><strong>Vendedor:</strong> ${venta?.usuario_nombre || ''}</p>
+                        <p><strong>Almacén:</strong> ${venta?.almacen_nombre || ''}</p>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-right">Precio Unit.</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${venta?.items?.map(item => `
+                            <tr>
+                                <td>${item.nombre_producto}</td>
+                                <td class="text-center">${item.cantidad}</td>
+                                <td class="text-right">$${(Number(item.precio_unitario) || 0).toFixed(2)}</td>
+                                <td class="text-right">$${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}</td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="4" class="text-center">No hay items disponibles</td></tr>'}
+                    </tbody>
+                </table>
+
+                <div class="receipt-totals">
+                    <div style="float: right; width: 300px;">
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span>$${venta ? (Number(venta.subtotal) || 0).toFixed(2) : '0.00'}</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Impuestos:</span>
+                            <span>$${venta ? (Number(venta.impuestos) || 0).toFixed(2) : '0.00'}</span>
+                        </div>
+                        <div class="total-row total-final">
+                            <span>TOTAL:</span>
+                            <span>$${venta ? (Number(venta.total) || 0).toFixed(2) : '0.00'}</span>
+                        </div>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+
+                <div class="receipt-footer">
+                    <p><strong>¡Gracias por su compra!</strong></p>
+                    <p>VINOVAULT - Sistema de Gestión de Inventario</p>
+                    <p style="font-size: 0.9em;">Impreso el: ${new Date().toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })}</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        // Escribir el contenido y imprimir
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        
+        // Esperar un momento para que se cargue el contenido
+        printWindow.onload = () => {
+            printWindow.print();
+            printWindow.close();
+        };
+    };
 
     return (
         <Dialog
