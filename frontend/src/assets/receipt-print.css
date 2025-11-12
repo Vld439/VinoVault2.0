@@ -1,17 +1,19 @@
 /* CSS específico para impresión de comprobantes individuales */
 @media print {
-  /* Ocultar todo por defecto */
-  body * {
+  /* Cuando se está imprimiendo un comprobante individual */
+  body.printing-receipt * {
     visibility: hidden !important;
   }
   
-  /* Solo mostrar elementos con data-print="true" */
-  [data-print="true"], 
-  [data-print="true"] * {
+  /* Solo mostrar el comprobante específico */
+  body.printing-receipt .receipt-only-print,
+  body.printing-receipt .receipt-only-print *,
+  body.printing-receipt [data-print="receipt"], 
+  body.printing-receipt [data-print="receipt"] * {
     visibility: visible !important;
   }
   
-  /* También mostrar el comprobante específico */
+  /* Fallback: mostrar el comprobante del modal */
   .receipt-print, 
   .receipt-print * {
     visibility: visible !important;

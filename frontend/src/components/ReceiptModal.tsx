@@ -71,9 +71,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
 
     const printMobileReceipt = () => {
         // Usar el mismo sistema que funciona en los reportes
-        // Crear un elemento temporal con data-print="true"
+        // Crear un elemento temporal específico para comprobante
         const printElement = document.createElement('div');
-        printElement.setAttribute('data-print', 'true');
+        printElement.setAttribute('data-print', 'receipt');
+        printElement.className = 'receipt-only-print';
         printElement.style.position = 'absolute';
         printElement.style.left = '-9999px';
         printElement.style.background = 'white';
@@ -167,6 +168,9 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             </div>
         `;
 
+        // Agregar clase especial al body para esta impresión
+        document.body.classList.add('printing-receipt');
+        
         // Agregar al DOM temporalmente
         document.body.appendChild(printElement);
 
@@ -175,6 +179,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
 
         // Limpiar después de un momento
         setTimeout(() => {
+            document.body.classList.remove('printing-receipt');
             if (document.body.contains(printElement)) {
                 document.body.removeChild(printElement);
             }
