@@ -17,9 +17,7 @@ import {
     Paper
 } from '@mui/material';
 import { Print as PrintIcon } from '@mui/icons-material';
-// import { useReactToPrint } from 'react-to-print';
 import logo from '../assets/logo.png';
-import '../assets/receipt-print.css';
 
 interface VentaItem {
     nombre_producto: string;
@@ -60,30 +58,21 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
         // Verificar si estamos en móvil
         const isMobile = window.innerWidth <= 768;
         
-        // Debug para móvil
         if (isMobile) {
-            alert(`📱 MODO MÓVIL - Ancho: ${window.innerWidth}px`);
-        } else {
-            alert(`💻 MODO DESKTOP - Ancho: ${window.innerWidth}px`);
-        }
-        
-        if (isMobile) {
-            // En móvil, usar el método simple de window.print() con CSS específico
+            // En móvil, usar ventana con controles manuales
             printMobileReceipt();
         } else {
-            // En desktop, usar ventana nueva
+            // En desktop, usar ventana nueva optimizada
             printDesktopReceipt();
         }
     };
 
     const printMobileReceipt = () => {
-        alert('📱 NUEVA ESTRATEGIA - Ventana completa con botones manuales');
-        
         // Crear ventana en pantalla completa para mejor experiencia
         const printWindow = window.open('', '_blank', 'fullscreen=yes,scrollbars=yes');
         
         if (!printWindow) {
-            alert('❌ No se pudo abrir ventana. Verifica permisos de pop-up.');
+            console.warn('No se pudo abrir ventana de impresión. Verifica permisos de pop-up.');
             return;
         }
         
@@ -309,8 +298,6 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
         printWindow.document.write(htmlContent);
         printWindow.document.close();
         printWindow.focus();
-        
-        alert('✅ Ventana abierta. Usa los botones "🖨️ Imprimir" o "✖ Cerrar" en la ventana nueva');
         
 
 
