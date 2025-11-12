@@ -45,9 +45,20 @@ interface ReceiptModalProps {
 }
 
 const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => {
-    const printRef = useRef(null);
+    const printRef = useRef<HTMLDivElement>(null);
 
-    // Configuración profesional de react-to-print (igual que CheckoutModal)
+    console.log('🖨️ ReceiptModal - Estado:', { open, venta: venta?.id, ventaCompleta: venta });
+
+    const handleButtonClick = () => {
+        console.log('🖨️ Botón imprimir clickeado - iniciando handlePrint');
+        if (!venta) {
+            console.error('❌ No hay datos de venta para imprimir');
+            return;
+        }
+        handlePrint();
+    };
+
+    // Configuración profesional de react-to-print
     const handlePrint = useReactToPrint({
         contentRef: printRef,
         documentTitle: `Venta-${venta?.id || 'comprobante'}`,
@@ -101,11 +112,11 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             }
         `,
         onBeforePrint: () => {
-            console.log('Preparando impresión del comprobante...');
+            console.log('🖨️ Preparando impresión del comprobante...');
             return Promise.resolve();
         },
         onAfterPrint: () => {
-            console.log('Impresión completada exitosamente');
+            console.log('✅ Impresión completada exitosamente');
         }
     });
 
@@ -193,7 +204,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {venta?.items?.map((item: any, index: number) => (
+                                {venta?.items && venta.items.length > 0 ? (
+                                    venta.items.map((item: any, index: number) => (
                                     <TableRow key={index}>
                                         <TableCell>{item.nombre_producto}</TableCell>
                                         <TableCell align="center">{item.cantidad}</TableCell>
@@ -204,7 +216,16 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                                             ${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} align="center">
+                                            <Typography color="text.secondary">
+                                                No hay items disponibles
+                                            </Typography>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>
@@ -266,7 +287,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                 <Button
                     variant="contained"
                     startIcon={<PrintIcon />}
-                    onClick={handlePrint}
+                    onClick={handleButtonClick}
                     color="primary"
                 >
                     Imprimir Comprobante

@@ -75,6 +75,7 @@ const HistorialPage = () => {
     };
 
     const handlePrintReceipt = (venta: Venta) => {
+        console.log('🖨️ Abriendo modal de comprobante para venta:', venta.id);
         setSelectedVenta(venta);
         setIsReceiptModalOpen(true);
     };
