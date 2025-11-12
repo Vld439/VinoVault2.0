@@ -146,14 +146,27 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
     }
   };
 
-  // Función de impresión con ventana manual (misma estrategia exitosa del ReceiptModal)
+  // Función de impresión con detección de dispositivo (igual que ReceiptModal)
   const handlePrint = () => {
     if (!saleSuccessData) {
       console.warn('No hay datos de venta para imprimir');
       return;
     }
 
-    // Crear ventana en pantalla completa
+    // Verificar si estamos en móvil
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      // En móvil, usar ventana con controles manuales
+      printMobileReceipt();
+    } else {
+      // En desktop, usar ventana nueva optimizada
+      printDesktopReceipt();
+    }
+  };
+
+  const printMobileReceipt = () => {
+    // Crear ventana en pantalla completa para móvil
     const printWindow = window.open('', '_blank', 'fullscreen=yes,scrollbars=yes');
     
     if (!printWindow) {
@@ -393,6 +406,190 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
     printWindow.document.write(htmlContent);
     printWindow.document.close();
     printWindow.focus();
+  };
+
+  const printDesktopReceipt = () => {
+    // Crear una nueva ventana para imprimir en desktop
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    // Crear el contenido HTML completo optimizado para desktop
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <title>Comprobante Venta #${saleSuccessData?.ventaId}</title>
+          <style>
+              @page {
+                  size: A4;
+                  margin: 15mm;
+              }
+              body {
+                  font-family: Arial, sans-serif;
+                  color: #000;
+                  background: white;
+                  margin: 0;
+                  padding: 20px;
+                  line-height: 1.4;
+              }
+              .receipt-header {
+                  text-align: center;
+                  margin-bottom: 20px;
+                  border-bottom: 2px solid #000;
+                  padding-bottom: 15px;
+              }
+              .receipt-details {
+                  margin-bottom: 20px;
+              }
+              .receipt-flex {
+                  display: flex;
+                  justify-content: space-between;
+                  margin-bottom: 20px;
+              }
+              .receipt-column {
+                  flex: 1;
+                  margin-right: 20px;
+              }
+              table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  margin: 20px 0;
+              }
+              th, td {
+                  border: 1px solid #000;
+                  padding: 8px;
+                  text-align: left;
+              }
+              th {
+                  background: #f5f5f5;
+                  font-weight: bold;
+              }
+              .text-right {
+                  text-align: right;
+              }
+              .text-center {
+                  text-align: center;
+              }
+              .receipt-totals {
+                  border-top: 2px solid #000;
+                  padding-top: 15px;
+                  margin-top: 20px;
+              }
+              .total-row {
+                  display: flex;
+                  justify-content: space-between;
+                  margin-bottom: 5px;
+              }
+              .total-final {
+                  font-weight: bold;
+                  font-size: 1.2em;
+                  border-top: 1px solid #000;
+                  padding-top: 10px;
+              }
+              .receipt-footer {
+                  text-align: center;
+                  margin-top: 30px;
+                  padding-top: 20px;
+                  border-top: 1px dashed #000;
+              }
+          </style>
+      </head>
+      <body>
+          <div class="receipt-header">
+              <h1 style="color: #1976d2; margin: 0;">VINOVAULT</h1>
+              <p style="margin: 5px 0;">Sistema de Gestión de Inventario</p>
+              <h2 style="margin: 15px 0;">COMPROBANTE DE VENTA</h2>
+          </div>
+
+          <div class="receipt-flex">
+              <div class="receipt-column">
+                  <p><strong>N° de Venta:</strong> #${saleSuccessData?.ventaId}</p>
+                  <p><strong>Fecha:</strong> ${new Date(saleSuccessData?.fecha).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                  })}</p>
+                  <p><strong>Moneda:</strong> ${currency}</p>
+              </div>
+              <div class="receipt-column">
+                  <p><strong>Cliente:</strong> ${saleSuccessData?.clientName || ''}</p>
+                  <p><strong>Vendedor:</strong> ${saleSuccessData?.vendedor || ''}</p>
+                  <p><strong>Almacén:</strong> ${saleSuccessData?.almacenName || ''}</p>
+              </div>
+          </div>
+
+          <table>
+              <thead>
+                  <tr>
+                      <th>Producto</th>
+                      <th class="text-center">Cantidad</th>
+                      <th class="text-right">Precio Unit.</th>
+                      <th class="text-right">Subtotal</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  ${saleSuccessData?.items?.map((item: CartItem) => {
+                      let price = item.precio_venta;
+                      if (currency === 'PYG' && item.precio_venta_pyg) { price = item.precio_venta_pyg; }
+                      if (currency === 'BRL' && item.precio_venta_brl) { price = item.precio_venta_brl; }
+                      const itemSubtotal = parseFloat(price) * item.quantity;
+                      return `
+                          <tr>
+                              <td>${item.nombre}</td>
+                              <td class="text-center">${item.quantity}</td>
+                              <td class="text-right">${formatCurrency(price, currency)}</td>
+                              <td class="text-right">${formatCurrency(itemSubtotal, currency)}</td>
+                          </tr>
+                      `;
+                  }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
+              </tbody>
+          </table>
+
+          <div class="receipt-totals">
+              <div style="float: right; width: 300px;">
+                  <div class="total-row">
+                      <span>Subtotal:</span>
+                      <span>${formatCurrency(saleSuccessData?.subtotal, currency)}</span>
+                  </div>
+                  <div class="total-row">
+                      <span>IVA (10%):</span>
+                      <span>${formatCurrency(saleSuccessData?.impuesto, currency)}</span>
+                  </div>
+                  <div class="total-row total-final">
+                      <span>TOTAL:</span>
+                      <span>${formatCurrency(saleSuccessData?.total, currency)}</span>
+                  </div>
+              </div>
+              <div style="clear: both;"></div>
+          </div>
+
+          <div class="receipt-footer">
+              <p><strong>¡Gracias por su compra!</strong></p>
+              <p>VINOVAULT - Sistema de Gestión de Inventario</p>
+              <p style="font-size: 0.9em;">Impreso el: ${new Date().toLocaleDateString('es-ES', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+              })}</p>
+          </div>
+      </body>
+      </html>
+    `;
+
+    // Escribir el contenido y imprimir
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    
+    // Esperar un momento para que se cargue el contenido
+    printWindow.onload = () => {
+        printWindow.print();
+        printWindow.close();
+    };
   };
 
   const handleCloseModal = () => {
