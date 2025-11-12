@@ -1,0 +1,61 @@
+/* CSS para impresión móvil optimizada */
+@media print {
+  /* Ocultar todo por defecto */
+  body * {
+    visibility: hidden !important;
+  }
+  
+  /* Solo mostrar el contenido de impresión */
+  [data-print="true"], 
+  [data-print="true"] * {
+    visibility: visible !important;
+  }
+  
+  /* Posicionar correctamente */
+  [data-print="true"] {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif !important;
+  }
+  
+  /* Ocultar elementos específicos de UI */
+  .no-print,
+  .MuiTabs-root,
+  .MuiButton-root,
+  .MuiTextField-root,
+  nav, header, footer,
+  [class*="navigation"],
+  [class*="toolbar"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Estilos básicos para el reporte */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    font-size: 10px !important;
+  }
+  
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 6px !important;
+    color: #000 !important;
+    background: white !important;
+  }
+  
+  th {
+    background-color: #f5f5f5 !important;
+    font-weight: bold !important;
+  }
+  
+  /* Configuración de página */
+  @page {
+    margin: 15mm !important;
+    size: A4 !important;
+  }
+}

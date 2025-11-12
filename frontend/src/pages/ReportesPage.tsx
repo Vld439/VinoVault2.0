@@ -5,6 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Divider, Chip, Tabs, Tab
 } from '@mui/material';
+import '../assets/print-mobile.css';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -105,112 +106,7 @@ const ReportesPage = () => {
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: `Reporte-${tabValue === 0 ? 'Ventas' : 'Stock'}-${format(new Date(), 'yyyy-MM-dd')}`,
-    pageStyle: `
-      @page {
-        size: A4;
-        margin: 20mm;
-      }
-      @media print {
-        * {
-          color: #000 !important;
-          background: white !important;
-          background-color: white !important;
-        }
-        body { 
-          font-family: 'Arial', sans-serif;
-          color: #000 !important;
-          background: white !important;
-        }
-        
-        /* Ocultar completamente elementos de la interfaz */
-        .no-print, 
-        .MuiTabs-root,
-        .MuiTab-root,
-        .MuiButton-root,
-        .MuiTextField-root,
-        .MuiDatePicker-root,
-        .MuiCircularProgress-root,
-        nav, header, footer, aside,
-        [class*="MuiAppBar"],
-        [class*="MuiToolbar"],
-        [class*="navigation"],
-        [class*="sidebar"] { 
-          display: none !important; 
-          visibility: hidden !important;
-        }
-        
-        .print-header {
-          border-bottom: 2px solid #000;
-          margin-bottom: 20px;
-          padding-bottom: 10px;
-          background: white !important;
-        }
-        
-        /* Configuración de página optimizada para móviles */
-        @page {
-          margin: 15mm;
-          size: A4;
-        }
-        
-        /* Ocultar elementos específicos del navegador y móvil */
-        body::before, body::after,
-        div[data-testid]:not([data-testid=""]),
-        [class*="url"], [class*="address"], [id*="url"],
-        [class*="browser"], [class*="mobile-ui"],
-        .MuiContainer-root > *:not([ref]) {
-          display: none !important;
-        }
-        
-        .print-totals {
-          border-top: 2px solid #000;
-          margin-top: 20px;
-          padding-top: 10px;
-          background-color: #f5f5f5 !important;
-        }
-        
-        /* Tablas optimizadas para impresión móvil */
-        table { 
-          width: 100% !important;
-          border-collapse: collapse !important;
-          background: white !important;
-          font-size: 10px !important; /* Más pequeño para móviles */
-        }
-        
-        th, td { 
-          border: 1px solid #000 !important;
-          padding: 6px !important; /* Padding reducido para móviles */
-          font-size: 10px !important;
-          color: #000 !important;
-          background: white !important;
-          word-wrap: break-word !important;
-        }
-        
-        th { 
-          background-color: #f5f5f5 !important;
-          font-weight: bold !important;
-          color: #000 !important;
-          font-size: 11px !important;
-        }
-        
-        .anulada-row {
-          background-color: #ffebee !important;
-          text-decoration: line-through !important;
-        }
-        
-        .MuiPaper-root {
-          background: white !important;
-          color: #000 !important;
-          box-shadow: none !important;
-        }
-        
-        /* Solo mostrar el contenido del reporte */
-        [ref] {
-          display: block !important;
-          visibility: visible !important;
-        }
-      }
-    `
+    documentTitle: `Reporte-${tabValue === 0 ? 'Ventas' : 'Stock'}-${format(new Date(), 'yyyy-MM-dd')}`
   });
   
   // Calcula los totales del reporte
@@ -260,27 +156,13 @@ const ReportesPage = () => {
       {isLoading ? (
         <Box className="no-print" sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
       ) : tabValue === 0 ? (
-        <Box 
+        <div 
           ref={printRef} 
-          sx={{ 
-            p: 2,
-            backgroundColor: 'white !important',
-            color: '#000 !important',
-            '& *': {
-              color: '#000 !important'
-            },
-            '& .MuiPaper-root': {
-              backgroundColor: 'white !important',
-              color: '#000 !important'
-            },
-            '& .MuiTableHead-root': {
-              backgroundColor: '#f5f5f5 !important'
-            },
-            '& .MuiTableHead-root .MuiTableCell-root': {
-              color: '#000 !important',
-              fontWeight: 'bold !important',
-              fontSize: '14px !important'
-            }
+          data-print="true"
+          style={{ 
+            padding: '16px',
+            backgroundColor: 'white',
+            color: '#000'
           }}
         >
           {/* Encabezado para impresión */}
@@ -474,30 +356,16 @@ const ReportesPage = () => {
               Este documento es un reporte interno y no constituye un documento fiscal
             </Typography>
           </Box>
-        </Box>
+        </div>
       ) : (
         /* Reporte de Stock */
-        <Box 
+        <div 
           ref={printRef} 
-          sx={{ 
-            p: 2,
-            backgroundColor: 'white !important',
-            color: '#000 !important',
-            '& *': {
-              color: '#000 !important'
-            },
-            '& .MuiPaper-root': {
-              backgroundColor: 'white !important',
-              color: '#000 !important'
-            },
-            '& .MuiTableHead-root': {
-              backgroundColor: '#f5f5f5 !important'
-            },
-            '& .MuiTableHead-root .MuiTableCell-root': {
-              color: '#000 !important',
-              fontWeight: 'bold !important',
-              fontSize: '14px !important'
-            }
+          data-print="true"
+          style={{ 
+            padding: '16px',
+            backgroundColor: 'white',
+            color: '#000'
           }}
         >
           {/* Encabezado para impresión */}
@@ -701,7 +569,7 @@ const ReportesPage = () => {
               Este documento es un reporte interno y no constituye un documento fiscal
             </Typography>
           </Box>
-        </Box>
+        </div>
       )}
     </Container>
   );
