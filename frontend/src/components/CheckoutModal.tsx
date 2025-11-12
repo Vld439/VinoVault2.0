@@ -3,6 +3,7 @@ import { useReactToPrint } from 'react-to-print';
 // ----- 1. IMPORTA 'CartItem' AQUÍ -----
 import { useCart, type Currency, type CartItem } from '../context/CartContext';
 import { useAuth, axiosInstance } from '../context/AuthContext';
+import { getImageUrl } from '../utils/imageUtils';
 import {
   Dialog,
   DialogTitle,
@@ -371,7 +372,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                                 <TableCell>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                         <img
-                                        src={item.imagen_url ? `${import.meta.env.VITE_API_BASE_URL}/${item.imagen_url}` : `https://placehold.co/60x60/212121/90caf9?text=${item.nombre.charAt(0)}`}
+                                        src={getImageUrl(item.imagen_url)}
                                         alt={item.nombre}
                                         style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
                                         />

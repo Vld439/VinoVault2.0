@@ -9,6 +9,7 @@ import {
   Icon,
   IconButton
 } from '@mui/material';
+import { getImageUrl } from '../utils/imageUtils';
 import { formatCurrency } from '../utils/formatCurrency';
 
 interface Product {
@@ -35,18 +36,11 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onDelete, onEditImage, onPreviewImage, onViewDetails, onEdit, onAddToCart }: ProductCardProps) => {
-  // 1. Lee la variable de entorno
-  const baseUrl = import.meta.env.VITE_API_BASE_URL; // (https://vinovault-api.onrender.com)
-  
-  // 2. Lee el nombre del archivo (ej: "imagen-123.jpg")
-  const imageName = product.imagen_url; 
-
-  // 3. Construye la URL COMPLETA
-  const imageUrl = imageName 
-    ? `${baseUrl}/uploads/${imageName}` // /uploads/
-    : null; // O una imagen "placeholder"
+  // Usar utility para construir URL de imagen de forma robusta
+  const imageUrl = getImageUrl(product.imagen_url);
 
   console.log('Datos recibidos por ProductCard:', product);
+  console.log('🖼️ Image URL for product:', imageUrl);
   return (
     <Box
       sx={{
