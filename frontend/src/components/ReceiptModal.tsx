@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { Print as PrintIcon } from '@mui/icons-material';
 import logo from '../assets/logo.png';
+import { usePrintReceipt } from '../hooks/usePrintReceipt';
 
 interface VentaItem {
     nombre_producto: string;
@@ -45,437 +46,34 @@ interface ReceiptModalProps {
 
 const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => {
     const printRef = useRef<HTMLDivElement>(null);
+    const { handlePrint } = usePrintReceipt();
 
     const handleButtonClick = () => {
         if (!venta) {
             console.error('❌ No hay datos de venta para imprimir');
             return;
         }
-        handlePrint();
-    };
-
-    const handlePrint = () => {
-        // Verificar si estamos en móvil
-        const isMobile = window.innerWidth <= 768;
         
-        if (isMobile) {
-            // En móvil, usar ventana con controles manuales
-            printMobileReceipt();
-        } else {
-            // En desktop, usar ventana nueva optimizada
-            printDesktopReceipt();
-        }
-    };
-
-    const printMobileReceipt = () => {
-        // Crear ventana en pantalla completa para mejor experiencia
-        const printWindow = window.open('', '_blank', 'fullscreen=yes,scrollbars=yes');
-        
-        if (!printWindow) {
-            console.warn('No se pudo abrir ventana de impresión. Verifica permisos de pop-up.');
-            return;
-        }
-        
-        // HTML con botones de control manual
-        const htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-                <title>Comprobante #${venta?.id}</title>
-                <style>
-                    body { 
-                        font-family: Arial, sans-serif; 
-                        font-size: 16px; 
-                        line-height: 1.5; 
-                        color: #000; 
-                        background: #fff; 
-                        padding: 20px;
-                        margin: 0;
-                    }
-                    .controls {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        background: #333;
-                        padding: 10px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        z-index: 1000;
-                    }
-                    .btn {
-                        background: #1976d2;
-                        color: white;
-                        border: none;
-                        padding: 12px 20px;
-                        font-size: 16px;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        margin: 0 5px;
-                    }
-                    .btn-close { background: #d32f2f; }
-                    .btn:hover { opacity: 0.8; }
-                    .receipt-container {
-                        margin-top: 60px;
-                        max-width: 100%;
-                        background: white;
-                        padding: 20px;
-                        border: 1px solid #ddd;
-                    }
-                    .header { 
-                        text-align: center; 
-                        border-bottom: 2px solid #000; 
-                        padding-bottom: 15px; 
-                        margin-bottom: 20px; 
-                    }
-                    .header h1 { 
-                        color: #1976d2; 
-                        font-size: 28px; 
-                        margin: 0 0 10px 0; 
-                    }
-                    .info-section {
-                        margin-bottom: 25px;
-                    }
-                    .info-row { 
-                        display: flex; 
-                        justify-content: space-between; 
-                        margin-bottom: 10px; 
-                        padding: 8px 0;
-                        border-bottom: 1px dotted #ccc;
-                        font-size: 16px;
-                    }
-                    .products-table { 
-                        width: 100%; 
-                        border-collapse: collapse; 
-                        margin: 25px 0; 
-                        font-size: 15px;
-                    }
-                    .products-table th, 
-                    .products-table td { 
-                        border: 1px solid #000; 
-                        padding: 12px 10px; 
-                        text-align: left; 
-                    }
-                    .products-table th { 
-                        background: #f0f0f0; 
-                        font-weight: bold; 
-                    }
-                    .text-right { text-align: right; }
-                    .text-center { text-align: center; }
-                    .totals-section { 
-                        border-top: 2px solid #000; 
-                        padding-top: 20px; 
-                        margin-top: 25px; 
-                    }
-                    .total-final { 
-                        font-weight: bold; 
-                        font-size: 20px; 
-                        border-top: 1px solid #000; 
-                        padding-top: 15px; 
-                        margin-top: 15px; 
-                    }
-                    .footer { 
-                        text-align: center; 
-                        margin-top: 40px; 
-                        padding-top: 25px; 
-                        border-top: 1px dashed #000; 
-                    }
-                    
-                    @media print {
-                        .controls { display: none !important; }
-                        body { padding: 0; margin: 0; }
-                        .receipt-container { 
-                            margin-top: 0; 
-                            border: none; 
-                            padding: 20px; 
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="controls">
-                    <button class="btn btn-close" onclick="window.close()">✖ Cerrar</button>
-                    <div>
-                        <span style="color: white; font-weight: bold;">Comprobante #${venta?.id}</span>
-                    </div>
-                    <button class="btn" onclick="window.print()">🖨️ Imprimir</button>
-                </div>
-                
-                <div class="receipt-container">
-                    <div class="header">
-                        <h1>VINOVAULT</h1>
-                        <p style="margin: 10px 0; font-size: 18px;">Sistema de Gestión de Inventario</p>
-                        <h2 style="margin-top: 20px; font-size: 22px; color: #333;">COMPROBANTE DE VENTA</h2>
-                    </div>
-
-                    <div class="info-section">
-                        <div class="info-row">
-                            <strong>Comprobante #:</strong>
-                            <span>${venta?.id}</span>
-                        </div>
-                        <div class="info-row">
-                            <strong>Fecha:</strong>
-                            <span>${venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
-                                year: 'numeric',
-                                month: 'long', 
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            }) : ''}</span>
-                        </div>
-                        <div class="info-row">
-                            <strong>Cliente:</strong>
-                            <span>${venta?.cliente_nombre || 'N/A'}</span>
-                        </div>
-                        <div class="info-row">
-                            <strong>Vendedor:</strong>
-                            <span>${venta?.usuario_nombre || 'N/A'}</span>
-                        </div>
-                        <div class="info-row">
-                            <strong>Almacén:</strong>
-                            <span>${venta?.almacen_nombre || 'N/A'}</span>
-                        </div>
-                    </div>
-
-                    <table class="products-table">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th class="text-center" style="width: 100px;">Cantidad</th>
-                                <th class="text-right" style="width: 120px;">Precio Unit.</th>
-                                <th class="text-right" style="width: 120px;">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${venta?.items?.map(item => `
-                                <tr>
-                                    <td>${item.nombre_producto}</td>
-                                    <td class="text-center">${item.cantidad}</td>
-                                    <td class="text-right">$${(Number(item.precio_unitario) || 0).toFixed(2)}</td>
-                                    <td class="text-right">$${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}</td>
-                                </tr>
-                            `).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
-                        </tbody>
-                    </table>
-
-                    <div class="totals-section">
-                        <div class="info-row">
-                            <strong>Subtotal:</strong>
-                            <span>$${venta ? (Number(venta.subtotal) || 0).toFixed(2) : '0.00'}</span>
-                        </div>
-                        <div class="info-row">
-                            <strong>Impuestos:</strong>
-                            <span>$${venta ? (Number(venta.impuestos) || 0).toFixed(2) : '0.00'}</span>
-                        </div>
-                        <div class="info-row total-final">
-                            <strong>TOTAL:</strong>
-                            <strong>$${venta ? (Number(venta.total) || 0).toFixed(2) : '0.00'}</strong>
-                        </div>
-                    </div>
-
-                    <div class="footer">
-                        <p style="font-size: 18px;"><strong>¡Gracias por su compra!</strong></p>
-                        <p style="margin: 10px 0; font-size: 16px;">VINOVAULT - Sistema de Gestión de Inventario</p>
-                        <p style="margin-top: 15px; font-size: 14px; color: #666;">
-                            Documento generado el: ${new Date().toLocaleDateString('es-ES', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </p>
-                    </div>
-                </div>
-            </body>
-            </html>
-        `;
-        
-        // Escribir contenido y enfocar ventana
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        printWindow.focus();
-        
-
-
-    };    const printDesktopReceipt = () => {
-        // Crear una nueva ventana para imprimir
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) return;
-
-        // Crear el contenido HTML completo para la impresión
-        const htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Comprobante de Venta #${venta?.id}</title>
-                <style>
-                    @page {
-                        size: A4;
-                        margin: 15mm;
-                    }
-                    body {
-                        font-family: Arial, sans-serif;
-                        color: #000;
-                        background: white;
-                        margin: 0;
-                        padding: 20px;
-                        line-height: 1.4;
-                    }
-                    .receipt-header {
-                        text-align: center;
-                        margin-bottom: 20px;
-                        border-bottom: 2px solid #000;
-                        padding-bottom: 15px;
-                    }
-                    .receipt-details {
-                        margin-bottom: 20px;
-                    }
-                    .receipt-flex {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-bottom: 20px;
-                    }
-                    .receipt-column {
-                        flex: 1;
-                        margin-right: 20px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 20px 0;
-                    }
-                    th, td {
-                        border: 1px solid #000;
-                        padding: 8px;
-                        text-align: left;
-                    }
-                    th {
-                        background: #f5f5f5;
-                        font-weight: bold;
-                    }
-                    .text-right {
-                        text-align: right;
-                    }
-                    .text-center {
-                        text-align: center;
-                    }
-                    .receipt-totals {
-                        border-top: 2px solid #000;
-                        padding-top: 15px;
-                        margin-top: 20px;
-                    }
-                    .total-row {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-bottom: 5px;
-                    }
-                    .total-final {
-                        font-weight: bold;
-                        font-size: 1.2em;
-                        border-top: 1px solid #000;
-                        padding-top: 10px;
-                    }
-                    .receipt-footer {
-                        text-align: center;
-                        margin-top: 30px;
-                        padding-top: 20px;
-                        border-top: 1px dashed #000;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="receipt-header">
-                    <h1 style="color: #1976d2; margin: 0;">VINOVAULT</h1>
-                    <p style="margin: 5px 0;">Sistema de Gestión de Inventario</p>
-                    <h2 style="margin: 15px 0;">COMPROBANTE DE VENTA</h2>
-                </div>
-
-                <div class="receipt-flex">
-                    <div class="receipt-column">
-                        <p><strong>Comprobante #:</strong> ${venta?.id}</p>
-                        <p><strong>Fecha:</strong> ${venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) : ''}</p>
-                    </div>
-                    <div class="receipt-column">
-                        <p><strong>Cliente:</strong> ${venta?.cliente_nombre || ''}</p>
-                        <p><strong>Vendedor:</strong> ${venta?.usuario_nombre || ''}</p>
-                        <p><strong>Almacén:</strong> ${venta?.almacen_nombre || ''}</p>
-                    </div>
-                </div>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th class="text-center">Cantidad</th>
-                            <th class="text-right">Precio Unit.</th>
-                            <th class="text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${venta?.items?.map(item => `
-                            <tr>
-                                <td>${item.nombre_producto}</td>
-                                <td class="text-center">${item.cantidad}</td>
-                                <td class="text-right">$${(Number(item.precio_unitario) || 0).toFixed(2)}</td>
-                                <td class="text-right">$${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}</td>
-                            </tr>
-                        `).join('') || '<tr><td colspan="4" class="text-center">No hay items disponibles</td></tr>'}
-                    </tbody>
-                </table>
-
-                <div class="receipt-totals">
-                    <div style="float: right; width: 300px;">
-                        <div class="total-row">
-                            <span>Subtotal:</span>
-                            <span>$${venta ? (Number(venta.subtotal) || 0).toFixed(2) : '0.00'}</span>
-                        </div>
-                        <div class="total-row">
-                            <span>Impuestos:</span>
-                            <span>$${venta ? (Number(venta.impuestos) || 0).toFixed(2) : '0.00'}</span>
-                        </div>
-                        <div class="total-row total-final">
-                            <span>TOTAL:</span>
-                            <span>$${venta ? (Number(venta.total) || 0).toFixed(2) : '0.00'}</span>
-                        </div>
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-
-                <div class="receipt-footer">
-                    <p><strong>¡Gracias por su compra!</strong></p>
-                    <p>VINOVAULT - Sistema de Gestión de Inventario</p>
-                    <p style="font-size: 0.9em;">Impreso el: ${new Date().toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                    })}</p>
-                </div>
-            </body>
-            </html>
-        `;
-
-        // Escribir el contenido y imprimir
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        
-        // Esperar un momento para que se cargue el contenido
-        printWindow.onload = () => {
-            printWindow.print();
-            printWindow.close();
+        // Convertir datos de venta al formato esperado por el hook
+        const printData = {
+            ventaId: venta.id,
+            fecha: new Date(venta.fecha_venta),
+            clientName: venta.cliente_nombre,
+            vendedor: venta.usuario_nombre,
+            almacenName: venta.almacen_nombre,
+            items: venta.items.map(item => ({
+                nombre: item.nombre_producto,
+                quantity: item.cantidad,
+                precio_venta: item.precio_unitario,
+                precio_venta_pyg: item.precio_unitario,
+                precio_venta_brl: item.precio_unitario
+            })),
+            subtotal: parseFloat(venta.subtotal),
+            impuesto: parseFloat(venta.impuestos),
+            total: parseFloat(venta.total)
         };
+        
+        handlePrint(printData);
     };
 
     return (
@@ -498,157 +96,118 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
                             <img 
                                 src={logo} 
-                                alt="Logo" 
-                                style={{ 
-                                    width: '80px', 
-                                    height: '80px', 
-                                    marginRight: '16px' 
-                                }} 
+                                alt="Logo VinoVault" 
+                                style={{ height: '80px', maxWidth: '200px' }}
                             />
-                            <Box>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#4d156bff' }}>
-                                    VINOVAULT
-                                </Typography>
-                                <Typography variant="subtitle1" color="text.secondary">
-                                    Sistema de Gestión de Inventario
-                                </Typography>
-                            </Box>
                         </Box>
+                        <Typography variant="h4" align="center" sx={{ fontWeight: 'bold', mb: 1 }}>
+                            COMPROBANTE DE VENTA
+                        </Typography>
+                        <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 2 }}>
+                            VinoVault - Sistema de Gestión
+                        </Typography>
                     </Box>
 
                     <Divider sx={{ my: 2 }} />
 
-                    <Box className="receipt-details">
-                        <Box sx={{ display: 'flex', gap: 4, mb: 3 }}>
-                            <Box sx={{ flex: 1 }}>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                    COMPROBANTE DE VENTA
+                    <Box className="receipt-details" sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+                            <Box>
+                                <Typography variant="body1" sx={{ mb: 1 }}>
+                                    <strong>N° Venta:</strong> #{venta?.id}
                                 </Typography>
-                                <Typography variant="body2">
-                                    <strong>Comprobante #:</strong> {venta?.id}
-                                </Typography>
-                                <Typography variant="body2">
-                                    <strong>Fecha:</strong> {venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    }) : ''}
+                                <Typography variant="body1" sx={{ mb: 1 }}>
+                                    <strong>Fecha:</strong> {venta ? new Date(venta.fecha_venta).toLocaleString('es-ES') : 'N/A'}
                                 </Typography>
                             </Box>
-                            <Box sx={{ flex: 1 }}>
-                                <Typography variant="body2">
+                            <Box>
+                                <Typography variant="body1" sx={{ mb: 1 }}>
                                     <strong>Cliente:</strong> {venta?.cliente_nombre}
                                 </Typography>
-                                <Typography variant="body2">
+                                <Typography variant="body1" sx={{ mb: 1 }}>
                                     <strong>Vendedor:</strong> {venta?.usuario_nombre}
                                 </Typography>
-                                <Typography variant="body2">
+                                <Typography variant="body1" sx={{ mb: 1 }}>
                                     <strong>Almacén:</strong> {venta?.almacen_nombre}
                                 </Typography>
                             </Box>
                         </Box>
                     </Box>
-
-                    <TableContainer component={Paper} variant="outlined">
-                        <Table size="small">
+                    
+                    <TableContainer component={Paper} elevation={2} sx={{ my: 3 }}>
+                        <Table>
                             <TableHead>
-                                <TableRow>
-                                    <TableCell><strong>Producto</strong></TableCell>
-                                    <TableCell align="center"><strong>Cantidad</strong></TableCell>
-                                    <TableCell align="right"><strong>Precio Unit.</strong></TableCell>
-                                    <TableCell align="right"><strong>Total</strong></TableCell>
+                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                                    <TableCell sx={{ fontWeight: 'bold' }}>Producto</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cantidad</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Precio Unitario</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Subtotal</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {venta?.items && venta.items.length > 0 ? (
-                                    venta.items.map((item: any, index: number) => (
+                                {venta?.items.map((item, index) => (
                                     <TableRow key={index}>
                                         <TableCell>{item.nombre_producto}</TableCell>
                                         <TableCell align="center">{item.cantidad}</TableCell>
-                                        <TableCell align="right">
-                                            ${(Number(item.precio_unitario) || 0).toFixed(2)}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            ${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}
+                                        <TableCell align="right">${parseFloat(item.precio_unitario).toFixed(2)}</TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                                            ${(parseFloat(item.precio_unitario) * item.cantidad).toFixed(2)}
                                         </TableCell>
                                     </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={4} align="center">
-                                            <Typography color="text.secondary">
-                                                No hay items disponibles
-                                            </Typography>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
+                                ))}
                             </TableBody>
                         </Table>
                     </TableContainer>
-
-                    <Box className="receipt-totals" sx={{ mt: 3 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <Box sx={{ minWidth: '300px' }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                    <Typography variant="body2">Subtotal:</Typography>
-                                    <Typography variant="body2">
-                                        ${venta ? (Number(venta.subtotal) || 0).toFixed(2) : '0.00'}
-                                    </Typography>
-                                </Box>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                    <Typography variant="body2">Impuestos:</Typography>
-                                    <Typography variant="body2">
-                                        ${venta ? (Number(venta.impuestos) || 0).toFixed(2) : '0.00'}
-                                    </Typography>
-                                </Box>
-                                <Divider sx={{ my: 1 }} />
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                        TOTAL:
-                                    </Typography>
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                        ${venta ? (Number(venta.total) || 0).toFixed(2) : '0.00'}
-                                    </Typography>
-                                </Box>
-                            </Box>
-                        </Box>
+                    
+                    <Box className="receipt-totals" sx={{ 
+                        mt: 3, 
+                        pt: 2, 
+                        borderTop: '2px solid #ddd',
+                        textAlign: 'right'
+                    }}>
+                        <Typography variant="h6" sx={{ mb: 1 }}>
+                            <strong>Subtotal: ${venta ? parseFloat(venta.subtotal).toFixed(2) : '0.00'}</strong>
+                        </Typography>
+                        <Typography variant="h6" sx={{ mb: 1 }}>
+                            <strong>IVA (10%): ${venta ? parseFloat(venta.impuestos).toFixed(2) : '0.00'}</strong>
+                        </Typography>
+                        <Typography variant="h4" sx={{ 
+                            fontWeight: 'bold', 
+                            color: 'primary.main',
+                            mt: 2,
+                            p: 1,
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: 1
+                        }}>
+                            TOTAL: ${venta ? parseFloat(venta.total).toFixed(2) : '0.00'}
+                        </Typography>
                     </Box>
 
-                    <Box sx={{ textAlign: 'center', mt: 4, pt: 2, borderTop: '1px dashed #ccc' }}>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                            ¡Gracias por su compra!
+                    <Box sx={{ 
+                        mt: 4, 
+                        pt: 2, 
+                        borderTop: '1px solid #ddd',
+                        textAlign: 'center'
+                    }}>
+                        <Typography variant="body2" color="text.secondary">
+                            Gracias por su compra - Vino Vault
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                            VINOVAULT - Sistema de Gestión de Inventario
-                        </Typography>
-                        <br />
-                        <Typography variant="caption" color="text.secondary">
-                            Impreso el: {new Date().toLocaleDateString('es-ES', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                            })}
+                        <Typography variant="body2" color="text.secondary">
+                            Fecha de impresión: {new Date().toLocaleString('es-ES')}
                         </Typography>
                     </Box>
                 </Box>
             </DialogContent>
 
-            <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button variant="outlined" onClick={onClose}>
-                    Cerrar
-                </Button>
+            <DialogActions>
+                <Button onClick={onClose}>Cerrar</Button>
                 <Button
-                    variant="contained"
-                    startIcon={<PrintIcon />}
                     onClick={handleButtonClick}
+                    variant="contained"
                     color="primary"
+                    startIcon={<PrintIcon />}
                 >
-                    Imprimir Comprobante
+                    Imprimir
                 </Button>
             </DialogActions>
         </Dialog>
