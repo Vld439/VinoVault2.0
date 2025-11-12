@@ -79,16 +79,26 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     const printMobileReceipt = () => {
         alert('📱 Ejecutando printMobileReceipt');
         
-        // Desactivar temporalmente el CSS de print-mobile.css
-        const printMobileLinks = Array.from(document.querySelectorAll('link[href*="print-mobile.css"], style')).filter(el => 
-            el.textContent?.includes('@media print') || (el as HTMLLinkElement).href?.includes('print-mobile.css')
-        ) as HTMLElement[];
+        // Desactivar temporalmente TODOS los CSS de impresión
+        const allStyleSheets = Array.from(document.styleSheets);
+        const printRules: any[] = [];
         
-        alert(`🔗 CSS Links encontrados: ${printMobileLinks.length}`);
-        
-        printMobileLinks.forEach(link => {
-            (link as any).disabled = true;
+        allStyleSheets.forEach(sheet => {
+            try {
+                const rules = Array.from(sheet.cssRules || []);
+                rules.forEach((rule: any, index) => {
+                    if (rule.media && rule.media.mediaText.includes('print')) {
+                        printRules.push({ sheet, index, rule });
+                        // Desactivar temporalmente
+                        sheet.deleteRule(index);
+                    }
+                });
+            } catch (e) {
+                // Ignore CORS errors
+            }
         });
+        
+        alert(`🔗 Reglas CSS print desactivadas: ${printRules.length}`);
 
         // Crear un elemento temporal específico para comprobante
         const printElement = document.createElement('div');
@@ -215,9 +225,13 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                 el.style.display = (el as any).originalDisplay || '';
             });
             
-            // Restaurar CSS de print-mobile
-            printMobileLinks.forEach(link => {
-                (link as any).disabled = false;
+            // Restaurar reglas CSS de impresión
+            printRules.forEach(({ sheet, index, rule }) => {
+                try {
+                    sheet.insertRule(rule.cssText, index);
+                } catch (e) {
+                    // Ignore errors
+                }
             });
             
             // Remover elemento de impresión
