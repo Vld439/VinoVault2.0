@@ -36,7 +36,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product, onDelete, onEditImage, onPreviewImage, onViewDetails, onEdit, onAddToCart }: ProductCardProps) => {
   const imageUrl = product.imagen_url
-    ? `http://localhost:5001/${product.imagen_url}`
+    ? `${import.meta.env.VITE_API_BASE_URL}/${product.imagen_url}`
     : null;
 console.log('Datos recibidos por ProductCard:', product);
   return (

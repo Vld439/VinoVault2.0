@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Container, Box, Typography, TextField, Button, Paper, Alert } from '@mui/material';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api/auth/register';
+const API_URL = `${import.meta.env.VITE_API_URL}/auth/register`;
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
