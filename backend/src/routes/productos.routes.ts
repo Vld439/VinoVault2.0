@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getAllProducts, createProduct, deleteProduct, updateProductImage, removeProductImage, getProductById, updateProduct } from '../controllers/productos.controller.js';
 import { authenticateToken } from '../middleware/auth.middleware.js';
-import upload from '../middleware/upload.middleware.js';
+import upload from '../middleware/supabaseUpload.middleware.js';
 
 const router = Router();
 

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Pool } from 'pg';
 import { deleteProductById, removeImageFromProduct, updateProductById } from '../services/productos.service.js';
 import { getExchangeRates } from '../services/exchangeRate.service.js';
+import { uploadToSupabase, deleteFromSupabase } from '../middleware/supabaseUpload.middleware.js';
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL
@@ -75,7 +76,17 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   const { sku, nombre, descripcion, precio_compra, precio_venta, stock_inicial, almacen_id } = req.body;
-  const imagen_url = req.file ? `uploads/${req.file.filename}` : null;
+  
+  // Subir imagen a Supabase Storage si existe
+  let imagen_url = null;
+  if (req.file) {
+    try {
+      imagen_url = await uploadToSupabase(req.file, 'productos');
+    } catch (error) {
+      console.error('Error subiendo imagen:', error);
+      return res.status(500).json({ message: 'Error subiendo imagen a Supabase' });
+    }
+  }
 
   const client = await pool.connect();
   try {
@@ -137,10 +148,16 @@ export const updateProductImage = async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ message: 'No se ha subido ninguna imagen.' });
   }
-  
-  const imagen_url = `uploads/${req.file.filename}`;
 
   try {
+    // Obtener la imagen anterior para eliminarla de Supabase
+    const currentProduct = await pool.query('SELECT imagen_url FROM productos WHERE id = $1', [id]);
+    const oldImageUrl = currentProduct.rows[0]?.imagen_url;
+    
+    // Subir nueva imagen a Supabase
+    const imagen_url = await uploadToSupabase(req.file, 'productos');
+    
+    // Actualizar base de datos
     const result = await pool.query(
       'UPDATE productos SET imagen_url = $1 WHERE id = $2 RETURNING *',
       [imagen_url, id]
@@ -148,6 +165,11 @@ export const updateProductImage = async (req: Request, res: Response) => {
 
     if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+    
+    // Eliminar imagen anterior de Supabase (si existe)
+    if (oldImageUrl && oldImageUrl.includes('supabase')) {
+      await deleteFromSupabase(oldImageUrl);
     }
     
     res.status(200).json(result.rows[0]);

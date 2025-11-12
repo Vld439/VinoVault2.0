@@ -43,10 +43,8 @@ app.use(cors(corsOptions));
 // Middlewares
 app.use(express.json());
 
-// Servidor de archivos estáticos para las imágenes
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Nota: Las imágenes ahora se almacenan en Supabase Storage
+// Ya no necesitamos servir archivos estáticos locales
 
 // Conexión a la base de datos
 const pool = new Pool({
