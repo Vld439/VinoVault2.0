@@ -23,11 +23,21 @@ const app = express();
 // Convertimos el PORT a número para que TypeScript y Express no tengan problemas.
 const PORT = parseInt(process.env.PORT || '5001');
 
-// Configuración de CORS (luego añadimos la URL de Vercel)
+// Configuración de CORS
 const corsOptions = {
-  origin: ['http://localhost:5173', 'https://vino-vault-2-0.vercel.app'],
-  optionsSuccessStatus: 200
+  // Asegúrate de que esta URL es la correcta (la del guion)
+  origin: ['http://localhost:5173', 'https://vino-vault2-0.vercel.app'],
+  
+  
+  // Métodos permitidos
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  
+  // Headers que permitidos
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  
+  optionsSuccessStatus: 200 // Para navegadores antiguos
 };
+
 app.use(cors(corsOptions));
 
 // Middlewares
