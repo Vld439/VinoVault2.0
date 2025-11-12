@@ -53,6 +53,40 @@
     font-weight: bold !important;
   }
   
+  /* Estilos específicos para cards del historial */
+  .MuiCard-root {
+    border: 1px solid #ccc !important;
+    margin-bottom: 8px !important;
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+  
+  .MuiCardContent-root {
+    padding: 8px !important;
+  }
+  
+  .MuiTypography-h6 {
+    font-size: 12px !important;
+    font-weight: bold !important;
+    margin-bottom: 4px !important;
+  }
+  
+  .MuiTypography-body2 {
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+  
+  .MuiChip-root {
+    font-size: 8px !important;
+    height: auto !important;
+    padding: 2px 4px !important;
+  }
+  
+  .MuiStack-root {
+    margin-bottom: 4px !important;
+  }
+  
   /* Configuración de página */
   @page {
     margin: 15mm !important;
