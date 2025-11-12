@@ -320,7 +320,7 @@ const HistorialPage = () => {
                             </Box>
                         </div>
                     ) : (
-                        /* Vista desktop con tabla */
+                        // Vista desktop con tabla
                         <TableContainer component={Paper}>
                             <Table>
                                 <TableHead>

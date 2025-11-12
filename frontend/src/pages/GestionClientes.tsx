@@ -238,7 +238,7 @@ const GestionClientesPage = () => {
               )}
             </Box>
           ) : (
-            /* Vista desktop con tabla */
+            // Vista desktop con tabla
             <Paper elevation={3}>
               <TableContainer>
                 <Table>

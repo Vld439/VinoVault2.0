@@ -70,8 +70,181 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     };
 
     const printMobileReceipt = () => {
-        // Usar el CSS receipt-print.css para ocultar todo excepto el comprobante
-        window.print();
+        // Crear un iframe oculto con el contenido del comprobante
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.left = '-9999px';
+        iframe.style.width = '1px';
+        iframe.style.height = '1px';
+        document.body.appendChild(iframe);
+
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!iframeDoc || !venta) return;
+
+        // HTML simple para móvil
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Comprobante ${venta.id}</title>
+                <style>
+                    body { 
+                        font-family: Arial, sans-serif; 
+                        margin: 20px; 
+                        color: #000; 
+                        background: white;
+                        font-size: 14px;
+                        line-height: 1.4;
+                    }
+                    .header { 
+                        text-align: center; 
+                        border-bottom: 2px solid #000; 
+                        padding-bottom: 15px; 
+                        margin-bottom: 20px; 
+                    }
+                    .header h1 { 
+                        color: #1976d2; 
+                        margin: 0 0 10px 0; 
+                        font-size: 24px;
+                    }
+                    .details { 
+                        margin-bottom: 20px; 
+                    }
+                    .row { 
+                        display: flex; 
+                        justify-content: space-between; 
+                        margin-bottom: 5px; 
+                    }
+                    table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin: 20px 0; 
+                    }
+                    th, td { 
+                        border: 1px solid #000; 
+                        padding: 8px; 
+                        text-align: left; 
+                    }
+                    th { 
+                        background: #f0f0f0; 
+                        font-weight: bold; 
+                    }
+                    .text-right { 
+                        text-align: right; 
+                    }
+                    .totals { 
+                        margin-top: 20px; 
+                        padding-top: 15px; 
+                        border-top: 2px solid #000; 
+                    }
+                    .total-final { 
+                        font-weight: bold; 
+                        font-size: 18px; 
+                        margin-top: 10px; 
+                        padding-top: 10px; 
+                        border-top: 1px solid #000; 
+                    }
+                    .footer { 
+                        text-align: center; 
+                        margin-top: 30px; 
+                        padding-top: 20px; 
+                        border-top: 1px dashed #000; 
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>VINOVAULT</h1>
+                    <p>Sistema de Gestión de Inventario</p>
+                    <h2>COMPROBANTE DE VENTA</h2>
+                </div>
+
+                <div class="details">
+                    <div class="row">
+                        <strong>Comprobante #:</strong>
+                        <span>${venta.id}</span>
+                    </div>
+                    <div class="row">
+                        <strong>Fecha:</strong>
+                        <span>${new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: '2-digit', 
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}</span>
+                    </div>
+                    <div class="row">
+                        <strong>Cliente:</strong>
+                        <span>${venta.cliente_nombre}</span>
+                    </div>
+                    <div class="row">
+                        <strong>Vendedor:</strong>
+                        <span>${venta.usuario_nombre}</span>
+                    </div>
+                    <div class="row">
+                        <strong>Almacén:</strong>
+                        <span>${venta.almacen_nombre}</span>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th class="text-right">Precio</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${venta.items?.map(item => `
+                            <tr>
+                                <td>${item.nombre_producto}</td>
+                                <td>${item.cantidad}</td>
+                                <td class="text-right">$${(Number(item.precio_unitario) || 0).toFixed(2)}</td>
+                                <td class="text-right">$${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}</td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="4">No hay items</td></tr>'}
+                    </tbody>
+                </table>
+
+                <div class="totals">
+                    <div class="row">
+                        <strong>Subtotal:</strong>
+                        <span>$${(Number(venta.subtotal) || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="row">
+                        <strong>Impuestos:</strong>
+                        <span>$${(Number(venta.impuestos) || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="row total-final">
+                        <strong>TOTAL:</strong>
+                        <strong>$${(Number(venta.total) || 0).toFixed(2)}</strong>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <p><strong>¡Gracias por su compra!</strong></p>
+                    <p>VINOVAULT - Sistema de Gestión</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        iframeDoc.open();
+        iframeDoc.write(htmlContent);
+        iframeDoc.close();
+
+        // Esperar y luego imprimir
+        setTimeout(() => {
+            iframe.contentWindow?.print();
+            // Limpiar después de imprimir
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 1000);
+        }, 500);
     };
 
     const printDesktopReceipt = () => {

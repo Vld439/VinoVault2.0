@@ -358,7 +358,7 @@ const ReportesPage = () => {
           </Box>
         </div>
       ) : (
-        /* Reporte de Stock */
+        // Reporte de Stock
         <div 
           ref={printRef} 
           data-print="true"
