@@ -166,7 +166,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
   };
 
   const printMobileReceipt = () => {
-    // Crear ventana en pantalla completa para móvil
+    // Crear ventana en pantalla completa para mejor experiencia (IGUAL que ReceiptModal)
     const printWindow = window.open('', '_blank', 'fullscreen=yes,scrollbars=yes');
     
     if (!printWindow) {
@@ -174,14 +174,14 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       return;
     }
 
-    // HTML con controles manuales
+    // HTML con botones de control manual (COPIADO EXACTO del ReceiptModal)
     const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-          <title>Comprobante Venta #${saleSuccessData.ventaId}</title>
+          <title>Venta #${saleSuccessData.ventaId}</title>
           <style>
               body { 
                   font-family: Arial, sans-serif; 
@@ -352,7 +352,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                       </tr>
                   </thead>
                   <tbody>
-                      ${saleSuccessData.items?.map((item: CartItem) => {
+                      ${saleSuccessData.items?.map((item: any) => {
                           let price = item.precio_venta;
                           if (currency === 'PYG' && item.precio_venta_pyg) { price = item.precio_venta_pyg; }
                           if (currency === 'BRL' && item.precio_venta_brl) { price = item.precio_venta_brl; }
