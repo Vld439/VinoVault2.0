@@ -70,18 +70,28 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     };
 
     const printMobileReceipt = () => {
-        // Usar el mismo sistema que funciona en los reportes
+        // Desactivar temporalmente el CSS de print-mobile.css
+        const printMobileLinks = Array.from(document.querySelectorAll('link[href*="print-mobile.css"], style')).filter(el => 
+            el.textContent?.includes('@media print') || (el as HTMLLinkElement).href?.includes('print-mobile.css')
+        ) as HTMLElement[];
+        
+        printMobileLinks.forEach(link => {
+            (link as any).disabled = true;
+        });
+
         // Crear un elemento temporal específico para comprobante
         const printElement = document.createElement('div');
-        printElement.setAttribute('data-print', 'receipt');
-        printElement.className = 'receipt-only-print';
-        printElement.style.position = 'absolute';
-        printElement.style.left = '-9999px';
+        printElement.style.position = 'fixed';
+        printElement.style.left = '0';
+        printElement.style.top = '0';
+        printElement.style.width = '100vw';
+        printElement.style.height = '100vh';
         printElement.style.background = 'white';
         printElement.style.color = 'black';
         printElement.style.fontFamily = 'Arial, sans-serif';
         printElement.style.padding = '20px';
-        printElement.style.width = '210mm'; // A4 width
+        printElement.style.zIndex = '9999';
+        printElement.style.overflow = 'auto';
         
         printElement.innerHTML = `
             <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px;">
@@ -168,18 +178,34 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             </div>
         `;
 
-        // Agregar clase especial al body para esta impresión
-        document.body.classList.add('printing-receipt');
+        // Ocultar todo el contenido original
+        const allElements = Array.from(document.body.children) as HTMLElement[];
+        allElements.forEach(el => {
+            if (el !== printElement) {
+                (el as any).originalDisplay = el.style.display;
+                el.style.display = 'none';
+            }
+        });
         
-        // Agregar al DOM temporalmente
+        // Agregar al DOM
         document.body.appendChild(printElement);
 
-        // Imprimir usando el sistema que ya funciona
+        // Imprimir
         window.print();
 
-        // Limpiar después de un momento
+        // Limpiar después de imprimir
         setTimeout(() => {
-            document.body.classList.remove('printing-receipt');
+            // Restaurar visibilidad de elementos originales
+            allElements.forEach(el => {
+                el.style.display = (el as any).originalDisplay || '';
+            });
+            
+            // Restaurar CSS de print-mobile
+            printMobileLinks.forEach(link => {
+                (link as any).disabled = false;
+            });
+            
+            // Remover elemento de impresión
             if (document.body.contains(printElement)) {
                 document.body.removeChild(printElement);
             }
