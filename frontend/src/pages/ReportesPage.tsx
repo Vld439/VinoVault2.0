@@ -67,6 +67,25 @@ const ReportesPage = () => {
         showNotification('Por favor, selecciona ambas fechas.', 'warning');
         return;
       }
+      
+      // Validar que las fechas no sean futuras
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // Establecer al final del día actual
+      
+      if (fechaInicio > today) {
+        showNotification('La fecha de inicio no puede ser futura.', 'warning');
+        return;
+      }
+      
+      if (fechaFin > today) {
+        showNotification('La fecha fin no puede ser futura.', 'warning');
+        return;
+      }
+      
+      if (fechaFin < fechaInicio) {
+        showNotification('La fecha fin debe ser posterior a la fecha de inicio.', 'warning');
+        return;
+      }
       const f1 = format(fechaInicio, 'yyyy-MM-dd');
       const f2 = format(fechaFin, 'yyyy-MM-dd');
 
@@ -138,8 +157,30 @@ const ReportesPage = () => {
         <Paper className="no-print" sx={{ p: 2, mb: 4, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           {tabValue === 0 && (
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
-              <DatePicker label="Fecha Inicio" value={fechaInicio} onChange={setFechaInicio} />
-              <DatePicker label="Fecha Fin" value={fechaFin} onChange={setFechaFin} />
+              <DatePicker 
+                label="Fecha Inicio" 
+                value={fechaInicio} 
+                onChange={setFechaInicio}
+                maxDate={new Date()}
+                slotProps={{
+                  textField: {
+                    helperText: fechaInicio && fechaInicio > new Date() ? 'La fecha no puede ser futura' : ''
+                  }
+                }}
+              />
+              <DatePicker 
+                label="Fecha Fin" 
+                value={fechaFin} 
+                onChange={setFechaFin}
+                maxDate={new Date()}
+                minDate={fechaInicio || undefined}
+                slotProps={{
+                  textField: {
+                    helperText: fechaFin && fechaFin > new Date() ? 'La fecha no puede ser futura' : 
+                              fechaFin && fechaInicio && fechaFin < fechaInicio ? 'La fecha fin debe ser posterior a la fecha inicio' : ''
+                  }
+                }}
+              />
             </LocalizationProvider>
           )}
           <Button variant="contained" onClick={handleGenerarReporte} disabled={isLoading}>
