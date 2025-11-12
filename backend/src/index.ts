@@ -76,3 +76,5 @@ app.get('/api/health', async (req: Request, res: Response) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Servidor de VinoVault corriendo en el puerto ${PORT}`);
 });
+
+//Servidor de VinoVault en Vercel
