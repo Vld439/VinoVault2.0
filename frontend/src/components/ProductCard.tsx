@@ -35,10 +35,18 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onDelete, onEditImage, onPreviewImage, onViewDetails, onEdit, onAddToCart }: ProductCardProps) => {
-  const imageUrl = product.imagen_url
-    ? `${import.meta.env.VITE_API_BASE_URL}/${product.imagen_url}`
-    : null;
-console.log('Datos recibidos por ProductCard:', product);
+  // 1. Lee la variable de entorno
+  const baseUrl = import.meta.env.VITE_API_BASE_URL; // (https://vinovault-api.onrender.com)
+  
+  // 2. Lee el nombre del archivo (ej: "imagen-123.jpg")
+  const imageName = product.imagen_url; 
+
+  // 3. Construye la URL COMPLETA
+  const imageUrl = imageName 
+    ? `${baseUrl}/uploads/${imageName}` // /uploads/
+    : null; // O una imagen "placeholder"
+
+  console.log('Datos recibidos por ProductCard:', product);
   return (
     <Box
       sx={{
