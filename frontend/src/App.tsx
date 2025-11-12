@@ -18,7 +18,7 @@ function App() {
   return (
     <Box sx={{ position: 'relative' }}>
       {/* Interruptor de Tema fijo en la esquina superior derecha */}
-      <Box sx={{ position: 'fixed', top: 16, right: 16, zIndex: 1301 }}>
+      <Box sx={{ position: 'fixed', top: 16, right: 16, zIndex: 100 }}>
         <Icon sx={{ verticalAlign: 'middle', color: 'text.secondary' }}>
           {mode === 'dark' ? 'dark_mode' : 'light_mode'}
         </Icon>
