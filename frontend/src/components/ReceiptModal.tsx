@@ -77,171 +77,109 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     };
 
     const printMobileReceipt = () => {
-        alert('📱 Ejecutando printMobileReceipt');
+        alert('📱 Método REEMPLAZO TOTAL del BODY');
         
-        // Desactivar temporalmente TODOS los CSS de impresión
-        const allStyleSheets = Array.from(document.styleSheets);
-        const printRules: any[] = [];
+        // Guardar el contenido original del body
+        const originalBodyContent = document.body.innerHTML;
         
-        allStyleSheets.forEach(sheet => {
-            try {
-                const rules = Array.from(sheet.cssRules || []);
-                rules.forEach((rule: any, index) => {
-                    if (rule.media && rule.media.mediaText.includes('print')) {
-                        printRules.push({ sheet, index, rule });
-                        // Desactivar temporalmente
-                        sheet.deleteRule(index);
-                    }
-                });
-            } catch (e) {
-                // Ignore CORS errors
-            }
-        });
-        
-        alert(`🔗 Reglas CSS print desactivadas: ${printRules.length}`);
-
-        // Crear un elemento temporal específico para comprobante
-        const printElement = document.createElement('div');
-        printElement.style.position = 'fixed';
-        printElement.style.left = '0';
-        printElement.style.top = '0';
-        printElement.style.width = '100vw';
-        printElement.style.height = '100vh';
-        printElement.style.background = 'white';
-        printElement.style.color = 'black';
-        printElement.style.fontFamily = 'Arial, sans-serif';
-        printElement.style.padding = '20px';
-        printElement.style.zIndex = '9999';
-        printElement.style.overflow = 'auto';
-        
-        printElement.innerHTML = `
-            <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px;">
-                <h1 style="color: #1976d2; margin: 0 0 10px 0; font-size: 24px;">VINOVAULT</h1>
-                <p style="margin: 5px 0;">Sistema de Gestión de Inventario</p>
-                <h2 style="margin: 15px 0;">COMPROBANTE DE VENTA</h2>
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong>Comprobante #:</strong>
-                    <span>${venta?.id}</span>
+        // Reemplazar COMPLETAMENTE el contenido del body
+        document.body.innerHTML = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background: white; color: black;">
+                <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px;">
+                    <h1 style="color: #1976d2; margin: 0 0 10px 0; font-size: 24px;">VINOVAULT</h1>
+                    <p style="margin: 5px 0;">Sistema de Gestión de Inventario</p>
+                    <h2 style="margin: 15px 0;">COMPROBANTE DE VENTA</h2>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong>Fecha:</strong>
-                    <span>${venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
+
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>Comprobante #:</strong>
+                        <span>${venta?.id}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>Fecha:</strong>
+                        <span>${venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: '2-digit', 
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : ''}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>Cliente:</strong>
+                        <span>${venta?.cliente_nombre || ''}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>Vendedor:</strong>
+                        <span>${venta?.usuario_nombre || ''}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>Almacén:</strong>
+                        <span>${venta?.almacen_nombre || ''}</span>
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold;">Producto</th>
+                            <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold;">Cant.</th>
+                            <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold; text-align: right;">Precio</th>
+                            <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold; text-align: right;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${venta?.items?.map(item => `
+                            <tr>
+                                <td style="border: 1px solid #000; padding: 8px;">${item.nombre_producto}</td>
+                                <td style="border: 1px solid #000; padding: 8px;">${item.cantidad}</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: right;">$${(Number(item.precio_unitario) || 0).toFixed(2)}</td>
+                                <td style="border: 1px solid #000; padding: 8px; text-align: right;">$${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}</td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="4" style="border: 1px solid #000; padding: 8px; text-align: center;">No hay items disponibles</td></tr>'}
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #000;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>Subtotal:</strong>
+                        <span>$${venta ? (Number(venta.subtotal) || 0).toFixed(2) : '0.00'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong>Impuestos:</strong>
+                        <span>$${venta ? (Number(venta.impuestos) || 0).toFixed(2) : '0.00'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #000;">
+                        <strong>TOTAL:</strong>
+                        <strong>$${venta ? (Number(venta.total) || 0).toFixed(2) : '0.00'}</strong>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #000;">
+                    <p><strong>¡Gracias por su compra!</strong></p>
+                    <p>VINOVAULT - Sistema de Gestión</p>
+                    <p style="font-size: 0.9em;">Impreso: ${new Date().toLocaleDateString('es-ES', {
                         year: 'numeric',
-                        month: '2-digit', 
+                        month: '2-digit',
                         day: '2-digit',
                         hour: '2-digit',
                         minute: '2-digit'
-                    }) : ''}</span>
+                    })}</p>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong>Cliente:</strong>
-                    <span>${venta?.cliente_nombre || ''}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong>Vendedor:</strong>
-                    <span>${venta?.usuario_nombre || ''}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong>Almacén:</strong>
-                    <span>${venta?.almacen_nombre || ''}</span>
-                </div>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <thead>
-                    <tr>
-                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold;">Producto</th>
-                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold;">Cant.</th>
-                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold; text-align: right;">Precio</th>
-                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; font-weight: bold; text-align: right;">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${venta?.items?.map(item => `
-                        <tr>
-                            <td style="border: 1px solid #000; padding: 8px;">${item.nombre_producto}</td>
-                            <td style="border: 1px solid #000; padding: 8px;">${item.cantidad}</td>
-                            <td style="border: 1px solid #000; padding: 8px; text-align: right;">$${(Number(item.precio_unitario) || 0).toFixed(2)}</td>
-                            <td style="border: 1px solid #000; padding: 8px; text-align: right;">$${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}</td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="4" style="border: 1px solid #000; padding: 8px; text-align: center;">No hay items disponibles</td></tr>'}
-                </tbody>
-            </table>
-
-            <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #000;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong>Subtotal:</strong>
-                    <span>$${venta ? (Number(venta.subtotal) || 0).toFixed(2) : '0.00'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <strong>Impuestos:</strong>
-                    <span>$${venta ? (Number(venta.impuestos) || 0).toFixed(2) : '0.00'}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #000;">
-                    <strong>TOTAL:</strong>
-                    <strong>$${venta ? (Number(venta.total) || 0).toFixed(2) : '0.00'}</strong>
-                </div>
-            </div>
-
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #000;">
-                <p><strong>¡Gracias por su compra!</strong></p>
-                <p>VINOVAULT - Sistema de Gestión</p>
-                <p style="font-size: 0.9em;">Impreso: ${new Date().toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })}</p>
             </div>
         `;
 
-        // Ocultar todo el contenido original
-        const allElements = Array.from(document.body.children) as HTMLElement[];
-        console.log('👥 Elementos del body:', allElements.length);
-        
-        allElements.forEach(el => {
-            if (el !== printElement) {
-                (el as any).originalDisplay = el.style.display;
-                el.style.display = 'none';
-            }
-        });
-        
-        // Agregar al DOM
-        document.body.appendChild(printElement);
-        console.log('✅ Elemento de impresión agregado al DOM');
-
         // Imprimir
-        alert('🖨️ A punto de llamar window.print()');
+        alert('🖨️ A punto de llamar window.print() con BODY REEMPLAZADO');
         window.print();
 
-        // Limpiar después de imprimir
+        // Restaurar el contenido original después de imprimir
         setTimeout(() => {
-            // Restaurar visibilidad de elementos originales
-            allElements.forEach(el => {
-                el.style.display = (el as any).originalDisplay || '';
-            });
-            
-            // Restaurar reglas CSS de impresión
-            printRules.forEach(({ sheet, index, rule }) => {
-                try {
-                    sheet.insertRule(rule.cssText, index);
-                } catch (e) {
-                    // Ignore errors
-                }
-            });
-            
-            // Remover elemento de impresión
-            if (document.body.contains(printElement)) {
-                document.body.removeChild(printElement);
-            }
+            document.body.innerHTML = originalBodyContent;
+            alert('🔄 Contenido original restaurado');
         }, 1000);
-    };
-
-    const printDesktopReceipt = () => {
+    };    const printDesktopReceipt = () => {
         // Crear una nueva ventana para imprimir
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
