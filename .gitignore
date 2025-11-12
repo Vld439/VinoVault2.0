@@ -23,5 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 *.pdf
-
-VinoVault - Libro Completo.pdf
+*.env
+.env.local
+.env.*.local  
