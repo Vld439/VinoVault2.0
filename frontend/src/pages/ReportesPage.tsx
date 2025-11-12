@@ -15,6 +15,7 @@ import { formatCurrency } from '../utils/formatCurrency';
 import { useReactToPrint } from 'react-to-print';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import logo from '../assets/logo.png';
 
 // Interfaces para los datos del reporte
 interface VentaItem {
@@ -168,13 +169,20 @@ const ReportesPage = () => {
           {/* Encabezado para impresión */}
           <Box className="print-header" sx={{ mb: 3, backgroundColor: 'white !important', color: '#000 !important' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
-                  VinoVault
-                </Typography>
-                <Typography variant="h6" sx={{ color: '#666 !important' }}>
-                  Sistema de Gestión de Inventario
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <img 
+                  src={logo} 
+                  alt="VinoVault Logo" 
+                  style={{ height: '60px', maxWidth: '120px' }}
+                />
+                <Box>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+                    VinoVault
+                  </Typography>
+                  <Typography variant="h6" sx={{ color: '#666 !important' }}>
+                    Sistema de Gestión de Inventario
+                  </Typography>
+                </Box>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
@@ -275,12 +283,12 @@ const ReportesPage = () => {
                         '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.08)' }
                       }}
                     >
-                      <TableCell sx={{ fontWeight: 'bold' }}>#{venta.id}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ fontWeight: 'bold', color: '#000 !important' }}>#{venta.id}</TableCell>
+                      <TableCell sx={{ color: '#000 !important' }}>
                         {format(new Date(venta.fecha_venta), 'dd/MM/yyyy HH:mm', { locale: es })}
                       </TableCell>
-                      <TableCell>{venta.cliente_nombre}</TableCell>
-                      <TableCell>{venta.vendedor_nombre}</TableCell>
+                      <TableCell sx={{ color: '#000 !important' }}>{venta.cliente_nombre}</TableCell>
+                      <TableCell sx={{ color: '#000 !important' }}>{venta.vendedor_nombre}</TableCell>
                       <TableCell>
                         <Chip 
                           label={venta.estado} 
@@ -289,13 +297,13 @@ const ReportesPage = () => {
                           variant={venta.estado === 'Completada' ? 'filled' : 'outlined'}
                         />
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ color: '#000 !important' }}>
                         {formatCurrency(parseFloat(venta.total) - parseFloat(venta.impuesto), venta.moneda)}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ color: '#000 !important' }}>
                         {formatCurrency(venta.impuesto, venta.moneda)}
                       </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                      <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
                         {formatCurrency(venta.total, venta.moneda)}
                       </TableCell>
                     </TableRow>
@@ -371,13 +379,20 @@ const ReportesPage = () => {
           {/* Encabezado para impresión */}
           <Box className="print-header" sx={{ mb: 3, backgroundColor: 'white !important', color: '#000 !important' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-              <Box>
-                <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
-                  VinoVault
-                </Typography>
-                <Typography variant="h6" sx={{ color: '#666 !important' }}>
-                  Sistema de Gestión de Inventario
-                </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <img 
+                  src={logo} 
+                  alt="VinoVault Logo" 
+                  style={{ height: '60px', maxWidth: '120px' }}
+                />
+                <Box>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+                    VinoVault
+                  </Typography>
+                  <Typography variant="h6" sx={{ color: '#666 !important' }}>
+                    Sistema de Gestión de Inventario
+                  </Typography>
+                </Box>
               </Box>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
@@ -478,16 +493,16 @@ const ReportesPage = () => {
                         '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.08)' }
                       }}
                     >
-                      <TableCell sx={{ fontWeight: 'bold' }}>{producto.sku}</TableCell>
-                      <TableCell>{producto.nombre}</TableCell>
-                      <TableCell>{producto.descripcion}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                      <TableCell sx={{ fontWeight: 'bold', color: '#000 !important' }}>{producto.sku}</TableCell>
+                      <TableCell sx={{ color: '#000 !important' }}>{producto.nombre}</TableCell>
+                      <TableCell sx={{ color: '#000 !important' }}>{producto.descripcion}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
                         {producto.total_stock}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ color: '#000 !important' }}>
                         {formatCurrency(producto.precio_compra, 'USD')}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ color: '#000 !important' }}>
                         {formatCurrency(producto.precio_venta, 'USD')}
                       </TableCell>
                       <TableCell>
