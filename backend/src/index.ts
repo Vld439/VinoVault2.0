@@ -25,7 +25,7 @@ const PORT = parseInt(process.env.PORT || '5001');
 
 // Configuración de CORS (luego añadimos la URL de Vercel)
 const corsOptions = {
-  origin: ['http://localhost:5173', 'https://vinovault-2-0.vercel.app'],
+  origin: ['http://localhost:5173', 'https://vino-vault-2-0.vercel.app'],
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
