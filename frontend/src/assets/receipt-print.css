@@ -5,10 +5,27 @@
     visibility: hidden !important;
   }
   
-  /* Solo mostrar el comprobante específico */
+  /* Solo mostrar elementos con data-print="true" */
+  [data-print="true"], 
+  [data-print="true"] * {
+    visibility: visible !important;
+  }
+  
+  /* También mostrar el comprobante específico */
   .receipt-print, 
   .receipt-print * {
     visibility: visible !important;
+  }
+  
+  /* Posicionar correctamente */
+  [data-print="true"] {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif !important;
   }
   
   /* Posicionar el comprobante correctamente */
