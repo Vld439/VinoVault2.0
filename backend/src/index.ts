@@ -43,9 +43,6 @@ app.use(cors(corsOptions));
 // Middlewares
 app.use(express.json());
 
-// Nota: Las imágenes ahora se almacenan en Supabase Storage
-// Ya no necesitamos servir archivos estáticos locales
-
 // Conexión a la base de datos
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL
