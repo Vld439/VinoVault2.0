@@ -58,19 +58,6 @@ Podés hacerlo desde **pgAdmin**, **DBeaver**, o la terminal de PostgreSQL:
 -- Opcional: Elimina la base de datos si ya existe para empezar de cero
 -- DROP DATABASE IF EXISTS vino_stock;
 
-CREATE DATABASE vino_stock
-    WITH
-    OWNER = postgres
-    ENCODING = 'UTF8'
-    LC_COLLATE = 'Spanish_Spain.1252'
-    LC_CTYPE = 'Spanish_Spain.1252'
-    LOCALE_PROVIDER = 'libc'
-    TABLESPACE = pg_default
-    CONNECTION LIMIT = -1;
-```
-### 🔹 6. Crear las tablas
-Una vez creada la base de datos, conéctate a ella y ejecuta el siguiente script completo para crear todas las tablas, secuencias, claves primarias y foráneas.
-```sql
 -- Creación de Tablas
 CREATE TABLE public.almacenes (
     id integer NOT NULL,
@@ -84,7 +71,8 @@ CREATE TABLE public.clientes (
     ruc character varying(50),
     telefono character varying(50),
     email character varying(255),
-    fecha_registro timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    fecha_registro timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    es_extranjero boolean DEFAULT false
 );
 
 CREATE TABLE public.inventario (
@@ -140,36 +128,74 @@ CREATE TABLE public.ventas (
     fecha_venta timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     total numeric(10,2) NOT NULL,
     estado character varying(50) DEFAULT 'Completada'::character varying,
-    moneda character varying(3) DEFAULT 'USD'::character varying
+    moneda character varying(3) DEFAULT 'USD'::character varying,
+    almacen_id integer,
+    subtotal numeric(10,2),
+    impuesto numeric(10,2)
 );
 
 -- Creación de Secuencias (para autoincremento de IDs)
 CREATE SEQUENCE public.almacenes_id_seq
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 ALTER SEQUENCE public.almacenes_id_seq OWNED BY public.almacenes.id;
 
 CREATE SEQUENCE public.clientes_id_seq
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 ALTER SEQUENCE public.clientes_id_seq OWNED BY public.clientes.id;
 
 CREATE SEQUENCE public.movimientos_stock_id_seq
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 ALTER SEQUENCE public.movimientos_stock_id_seq OWNED BY public.movimientos_stock.id;
 
 CREATE SEQUENCE public.productos_id_seq
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 ALTER SEQUENCE public.productos_id_seq OWNED BY public.productos.id;
 
 CREATE SEQUENCE public.usuarios_id_seq
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 ALTER SEQUENCE public.usuarios_id_seq OWNED BY public.usuarios.id;
 
 CREATE SEQUENCE public.venta_items_id_seq
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 ALTER SEQUENCE public.venta_items_id_seq OWNED BY public.venta_items.id;
 
 CREATE SEQUENCE public.ventas_id_seq
-    AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 ALTER SEQUENCE public.ventas_id_seq OWNED BY public.ventas.id;
 
 -- Configuración de valores por defecto (autoincremento)
@@ -221,13 +247,15 @@ ALTER TABLE ONLY public.venta_items
 ALTER TABLE ONLY public.venta_items
     ADD CONSTRAINT venta_items_venta_id_fkey FOREIGN KEY (venta_id) REFERENCES public.ventas(id);
 ALTER TABLE ONLY public.ventas
+    ADD CONSTRAINT ventas_almacen_id_fkey FOREIGN KEY (almacen_id) REFERENCES public.almacenes(id);
+ALTER TABLE ONLY public.ventas
     ADD CONSTRAINT ventas_cliente_id_fkey FOREIGN KEY (cliente_id) REFERENCES public.clientes(id);
 ALTER TABLE ONLY public.ventas
     ADD CONSTRAINT ventas_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id);
 
 -- Creación de Índices
 CREATE INDEX idx_productos_nombre ON public.productos USING btree (nombre);
-CREATE INDEX idx_productos_sku ON public.productos USING btree (sku);```
+CREATE INDEX idx_productos_sku ON public.productos USING btree (sku);
 
 ```
 
