@@ -19,6 +19,7 @@ import {
 import { Print as PrintIcon } from '@mui/icons-material';
 // import { useReactToPrint } from 'react-to-print';
 import logo from '../assets/logo.png';
+import '../assets/receipt-print.css';
 
 interface VentaItem {
     nombre_producto: string;
@@ -56,12 +57,27 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     };
 
     const handlePrint = () => {
+        // Verificar si estamos en móvil
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile) {
+            // En móvil, usar el método simple de window.print() con CSS específico
+            printMobileReceipt();
+        } else {
+            // En desktop, usar ventana nueva
+            printDesktopReceipt();
+        }
+    };
+
+    const printMobileReceipt = () => {
+        // Usar el CSS receipt-print.css para ocultar todo excepto el comprobante
+        window.print();
+    };
+
+    const printDesktopReceipt = () => {
         // Crear una nueva ventana para imprimir
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
-
-        const printContent = printRef.current;
-        if (!printContent) return;
 
         // Crear el contenido HTML completo para la impresión
         const htmlContent = `
@@ -250,7 +266,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             </DialogTitle>
 
             <DialogContent>
-                <Box ref={printRef} sx={{ p: 2 }}>
+                <Box ref={printRef} className="receipt-print" sx={{ p: 2 }}>
                     <Box className="receipt-header">
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
                             <img 
