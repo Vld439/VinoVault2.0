@@ -122,64 +122,92 @@ const ReportesPage = () => {
           color: #000 !important;
           background: white !important;
         }
-        .no-print { display: none !important; }
+        
+        /* Ocultar completamente elementos de la interfaz */
+        .no-print, 
+        .MuiTabs-root,
+        .MuiTab-root,
+        .MuiButton-root,
+        .MuiTextField-root,
+        .MuiDatePicker-root,
+        .MuiCircularProgress-root,
+        nav, header, footer, aside,
+        [class*="MuiAppBar"],
+        [class*="MuiToolbar"],
+        [class*="navigation"],
+        [class*="sidebar"] { 
+          display: none !important; 
+          visibility: hidden !important;
+        }
+        
         .print-header {
           border-bottom: 2px solid #000;
           margin-bottom: 20px;
           padding-bottom: 10px;
           background: white !important;
         }
-        /* Ocultar elementos del navegador en impresión */
+        
+        /* Configuración de página optimizada para móviles */
         @page {
-          margin: 20mm;
+          margin: 15mm;
+          size: A4;
         }
-        body::before,
-        body::after {
+        
+        /* Ocultar elementos específicos del navegador y móvil */
+        body::before, body::after,
+        div[data-testid]:not([data-testid=""]),
+        [class*="url"], [class*="address"], [id*="url"],
+        [class*="browser"], [class*="mobile-ui"],
+        .MuiContainer-root > *:not([ref]) {
           display: none !important;
         }
-        /* Ocultar URL y fecha del navegador */
-        div[data-testid]:not([data-testid=""]) {
-          display: none !important;
-        }
+        
         .print-totals {
           border-top: 2px solid #000;
           margin-top: 20px;
           padding-top: 10px;
           background-color: #f5f5f5 !important;
         }
+        
+        /* Tablas optimizadas para impresión móvil */
         table { 
           width: 100% !important;
           border-collapse: collapse !important;
           background: white !important;
+          font-size: 10px !important; /* Más pequeño para móviles */
         }
+        
         th, td { 
           border: 1px solid #000 !important;
-          padding: 8px !important;
-          font-size: 12px !important;
+          padding: 6px !important; /* Padding reducido para móviles */
+          font-size: 10px !important;
           color: #000 !important;
           background: white !important;
+          word-wrap: break-word !important;
         }
+        
         th { 
           background-color: #f5f5f5 !important;
           font-weight: bold !important;
           color: #000 !important;
-          font-size: 14px !important;
+          font-size: 11px !important;
         }
+        
         .anulada-row {
           background-color: #ffebee !important;
           text-decoration: line-through !important;
         }
+        
         .MuiPaper-root {
           background: white !important;
           color: #000 !important;
+          box-shadow: none !important;
         }
-        /* Ocultar elementos específicos del navegador */
-        header, footer, nav, aside {
-          display: none !important;
-        }
-        /* Ocultar información de URL */
-        [class*="url"], [class*="address"], [id*="url"] {
-          display: none !important;
+        
+        /* Solo mostrar el contenido del reporte */
+        [ref] {
+          display: block !important;
+          visibility: visible !important;
         }
       }
     `
@@ -197,19 +225,20 @@ const ReportesPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* Elementos que NO deben aparecer en impresión */}
+        <Box className="no-print" sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h4" component="h1">Reportes</Typography>
           <Button component={RouterLink} to="/dashboard" variant="outlined">Volver al Dashboard</Button>
         </Box>
 
-        <Paper sx={{ mb: 4 }}>
+        <Paper className="no-print" sx={{ mb: 4 }}>
           <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tab label="Reporte de Ventas" />
             <Tab label="Stock por Producto" />
           </Tabs>
         </Paper>
 
-        <Paper sx={{ p: 2, mb: 4, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Paper className="no-print" sx={{ p: 2, mb: 4, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           {tabValue === 0 && (
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
               <DatePicker label="Fecha Inicio" value={fechaInicio} onChange={setFechaInicio} />
@@ -229,7 +258,7 @@ const ReportesPage = () => {
         </Paper>
 
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
+        <Box className="no-print" sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
       ) : tabValue === 0 ? (
         <Box 
           ref={printRef} 
