@@ -77,208 +77,243 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     };
 
     const printMobileReceipt = () => {
-        alert('📱 Método OPTIMIZADO para móvil - evitar "preparando vista previa"');
+        alert('📱 NUEVA ESTRATEGIA - Ventana completa con botones manuales');
         
-        // En lugar de reemplazar el body, crear una nueva ventana optimizada para móvil
-        const printWindow = window.open('', '_blank', 'width=400,height=600,scrollbars=yes');
+        // Crear ventana en pantalla completa para mejor experiencia
+        const printWindow = window.open('', '_blank', 'fullscreen=yes,scrollbars=yes');
         
         if (!printWindow) {
-            alert('❌ No se pudo abrir ventana de impresión. Verifica que no esté bloqueada.');
+            alert('❌ No se pudo abrir ventana. Verifica permisos de pop-up.');
             return;
         }
         
-        // HTML simplificado y optimizado para móviles
+        // HTML con botones de control manual
         const htmlContent = `
             <!DOCTYPE html>
             <html>
             <head>
                 <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
                 <title>Comprobante #${venta?.id}</title>
                 <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
                     body { 
                         font-family: Arial, sans-serif; 
-                        font-size: 14px; 
-                        line-height: 1.4; 
+                        font-size: 16px; 
+                        line-height: 1.5; 
                         color: #000; 
                         background: #fff; 
-                        padding: 15px;
-                        max-width: 400px;
-                        margin: 0 auto;
+                        padding: 20px;
+                        margin: 0;
                     }
-                    @media print {
-                        body { padding: 0; margin: 0; }
-                        @page { 
-                            size: A4; 
-                            margin: 10mm; 
-                        }
+                    .controls {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        background: #333;
+                        padding: 10px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        z-index: 1000;
+                    }
+                    .btn {
+                        background: #1976d2;
+                        color: white;
+                        border: none;
+                        padding: 12px 20px;
+                        font-size: 16px;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        margin: 0 5px;
+                    }
+                    .btn-close { background: #d32f2f; }
+                    .btn:hover { opacity: 0.8; }
+                    .receipt-container {
+                        margin-top: 60px;
+                        max-width: 100%;
+                        background: white;
+                        padding: 20px;
+                        border: 1px solid #ddd;
                     }
                     .header { 
                         text-align: center; 
                         border-bottom: 2px solid #000; 
-                        padding-bottom: 10px; 
-                        margin-bottom: 15px; 
+                        padding-bottom: 15px; 
+                        margin-bottom: 20px; 
                     }
                     .header h1 { 
                         color: #1976d2; 
-                        font-size: 20px; 
-                        margin-bottom: 5px; 
+                        font-size: 28px; 
+                        margin: 0 0 10px 0; 
+                    }
+                    .info-section {
+                        margin-bottom: 25px;
                     }
                     .info-row { 
                         display: flex; 
                         justify-content: space-between; 
-                        margin-bottom: 3px; 
-                        font-size: 13px;
+                        margin-bottom: 10px; 
+                        padding: 8px 0;
+                        border-bottom: 1px dotted #ccc;
+                        font-size: 16px;
                     }
-                    table { 
+                    .products-table { 
                         width: 100%; 
                         border-collapse: collapse; 
-                        margin: 15px 0; 
-                        font-size: 12px;
+                        margin: 25px 0; 
+                        font-size: 15px;
                     }
-                    th, td { 
+                    .products-table th, 
+                    .products-table td { 
                         border: 1px solid #000; 
-                        padding: 6px 4px; 
+                        padding: 12px 10px; 
                         text-align: left; 
                     }
-                    th { 
+                    .products-table th { 
                         background: #f0f0f0; 
                         font-weight: bold; 
                     }
                     .text-right { text-align: right; }
                     .text-center { text-align: center; }
-                    .totals { 
+                    .totals-section { 
                         border-top: 2px solid #000; 
-                        padding-top: 10px; 
-                        margin-top: 15px; 
+                        padding-top: 20px; 
+                        margin-top: 25px; 
                     }
                     .total-final { 
                         font-weight: bold; 
-                        font-size: 15px; 
+                        font-size: 20px; 
                         border-top: 1px solid #000; 
-                        padding-top: 8px; 
-                        margin-top: 8px; 
+                        padding-top: 15px; 
+                        margin-top: 15px; 
                     }
                     .footer { 
                         text-align: center; 
-                        margin-top: 20px; 
-                        padding-top: 15px; 
+                        margin-top: 40px; 
+                        padding-top: 25px; 
                         border-top: 1px dashed #000; 
-                        font-size: 12px;
+                    }
+                    
+                    @media print {
+                        .controls { display: none !important; }
+                        body { padding: 0; margin: 0; }
+                        .receipt-container { 
+                            margin-top: 0; 
+                            border: none; 
+                            padding: 20px; 
+                        }
                     }
                 </style>
             </head>
             <body>
-                <div class="header">
-                    <h1>VINOVAULT</h1>
-                    <p>Sistema de Gestión de Inventario</p>
-                    <h2 style="margin-top: 10px; font-size: 16px;">COMPROBANTE DE VENTA</h2>
+                <div class="controls">
+                    <button class="btn btn-close" onclick="window.close()">✖ Cerrar</button>
+                    <div>
+                        <span style="color: white; font-weight: bold;">Comprobante #${venta?.id}</span>
+                    </div>
+                    <button class="btn" onclick="window.print()">🖨️ Imprimir</button>
                 </div>
+                
+                <div class="receipt-container">
+                    <div class="header">
+                        <h1>VINOVAULT</h1>
+                        <p style="margin: 10px 0; font-size: 18px;">Sistema de Gestión de Inventario</p>
+                        <h2 style="margin-top: 20px; font-size: 22px; color: #333;">COMPROBANTE DE VENTA</h2>
+                    </div>
 
-                <div style="margin-bottom: 15px;">
-                    <div class="info-row">
-                        <strong>Comprobante #:</strong>
-                        <span>${venta?.id}</span>
+                    <div class="info-section">
+                        <div class="info-row">
+                            <strong>Comprobante #:</strong>
+                            <span>${venta?.id}</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Fecha:</strong>
+                            <span>${venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'long', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : ''}</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Cliente:</strong>
+                            <span>${venta?.cliente_nombre || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Vendedor:</strong>
+                            <span>${venta?.usuario_nombre || 'N/A'}</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Almacén:</strong>
+                            <span>${venta?.almacen_nombre || 'N/A'}</span>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <strong>Fecha:</strong>
-                        <span>${venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES', {
-                            year: 'numeric',
-                            month: '2-digit', 
-                            day: '2-digit'
-                        }) : ''}</span>
-                    </div>
-                    <div class="info-row">
-                        <strong>Cliente:</strong>
-                        <span>${venta?.cliente_nombre || ''}</span>
-                    </div>
-                    <div class="info-row">
-                        <strong>Vendedor:</strong>
-                        <span>${venta?.usuario_nombre || ''}</span>
-                    </div>
-                </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th style="width: 60px;" class="text-center">Cant.</th>
-                            <th style="width: 70px;" class="text-right">Precio</th>
-                            <th style="width: 70px;" class="text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${venta?.items?.map(item => `
+                    <table class="products-table">
+                        <thead>
                             <tr>
-                                <td>${item.nombre_producto}</td>
-                                <td class="text-center">${item.cantidad}</td>
-                                <td class="text-right">$${(Number(item.precio_unitario) || 0).toFixed(2)}</td>
-                                <td class="text-right">$${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}</td>
+                                <th>Producto</th>
+                                <th class="text-center" style="width: 100px;">Cantidad</th>
+                                <th class="text-right" style="width: 120px;">Precio Unit.</th>
+                                <th class="text-right" style="width: 120px;">Total</th>
                             </tr>
-                        `).join('') || '<tr><td colspan="4" class="text-center">No hay items</td></tr>'}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${venta?.items?.map(item => `
+                                <tr>
+                                    <td>${item.nombre_producto}</td>
+                                    <td class="text-center">${item.cantidad}</td>
+                                    <td class="text-right">$${(Number(item.precio_unitario) || 0).toFixed(2)}</td>
+                                    <td class="text-right">$${((Number(item.precio_unitario) || 0) * (Number(item.cantidad) || 0)).toFixed(2)}</td>
+                                </tr>
+                            `).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
+                        </tbody>
+                    </table>
 
-                <div class="totals">
-                    <div class="info-row">
-                        <strong>Subtotal:</strong>
-                        <span>$${venta ? (Number(venta.subtotal) || 0).toFixed(2) : '0.00'}</span>
+                    <div class="totals-section">
+                        <div class="info-row">
+                            <strong>Subtotal:</strong>
+                            <span>$${venta ? (Number(venta.subtotal) || 0).toFixed(2) : '0.00'}</span>
+                        </div>
+                        <div class="info-row">
+                            <strong>Impuestos:</strong>
+                            <span>$${venta ? (Number(venta.impuestos) || 0).toFixed(2) : '0.00'}</span>
+                        </div>
+                        <div class="info-row total-final">
+                            <strong>TOTAL:</strong>
+                            <strong>$${venta ? (Number(venta.total) || 0).toFixed(2) : '0.00'}</strong>
+                        </div>
                     </div>
-                    <div class="info-row">
-                        <strong>Impuestos:</strong>
-                        <span>$${venta ? (Number(venta.impuestos) || 0).toFixed(2) : '0.00'}</span>
-                    </div>
-                    <div class="info-row total-final">
-                        <strong>TOTAL:</strong>
-                        <strong>$${venta ? (Number(venta.total) || 0).toFixed(2) : '0.00'}</strong>
-                    </div>
-                </div>
 
-                <div class="footer">
-                    <p><strong>¡Gracias por su compra!</strong></p>
-                    <p>VINOVAULT</p>
+                    <div class="footer">
+                        <p style="font-size: 18px;"><strong>¡Gracias por su compra!</strong></p>
+                        <p style="margin: 10px 0; font-size: 16px;">VINOVAULT - Sistema de Gestión de Inventario</p>
+                        <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                            Documento generado el: ${new Date().toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </p>
+                    </div>
                 </div>
             </body>
             </html>
         `;
         
-        // Escribir contenido y configurar impresión
+        // Escribir contenido y enfocar ventana
         printWindow.document.write(htmlContent);
         printWindow.document.close();
+        printWindow.focus();
         
-        alert('✅ Ventana de impresión creada. Esperando carga...');
+        alert('✅ Ventana abierta. Usa los botones "🖨️ Imprimir" o "✖ Cerrar" en la ventana nueva');
         
-        // Esperar a que se cargue completamente antes de imprimir
-        printWindow.addEventListener('load', () => {
-            alert('🖨️ Ventana cargada. Iniciando impresión...');
-            setTimeout(() => {
-                try {
-                    printWindow.print();
-                    alert('📄 Impresión enviada correctamente');
-                    // Cerrar ventana después de un momento
-                    setTimeout(() => {
-                        if (!printWindow.closed) {
-                            printWindow.close();
-                        }
-                    }, 2000);
-                } catch (error) {
-                    alert('❌ Error al imprimir: ' + (error as Error).message);
-                }
-            }, 500);
-        });
-        
-        // Fallback si addEventListener no funciona en algunos móviles
-        setTimeout(() => {
-            if (printWindow && !printWindow.closed) {
-                try {
-                    printWindow.print();
-                    alert('� Impresión fallback ejecutada');
-                } catch (error) {
-                    alert('❌ Error en fallback: ' + (error as Error).message);
-                }
-            }
-        }, 2000);
+
+
     };    const printDesktopReceipt = () => {
         // Crear una nueva ventana para imprimir
         const printWindow = window.open('', '_blank');
