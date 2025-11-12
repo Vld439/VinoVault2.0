@@ -80,77 +80,85 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
         <Dialog
             open={open}
             onClose={onClose}
-            maxWidth="md"
+            maxWidth="sm"
             fullWidth
         >
-            <DialogTitle>
+            <DialogTitle sx={{ bgcolor: '#1976d2', color: 'white', py: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <PrintIcon color="primary" />
+                    <PrintIcon />
                     <Typography variant="h6">Comprobante de Venta</Typography>
                 </Box>
             </DialogTitle>
 
-            <DialogContent>
-                <Box ref={printRef} className="receipt-print" sx={{ p: 2 }}>
-                    <Box className="receipt-header">
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-                            <img 
-                                src={logo} 
-                                alt="Logo VinoVault" 
-                                style={{ height: '80px', maxWidth: '200px' }}
-                            />
-                        </Box>
-                        <Typography variant="h4" align="center" sx={{ fontWeight: 'bold', mb: 1 }}>
+            <DialogContent sx={{ p: 0 }}>
+                <Box ref={printRef} sx={{ 
+                    bgcolor: 'white', 
+                    color: 'black',
+                    p: 3,
+                    fontSize: '0.9rem'
+                }}>
+                    {/* Header compacto */}
+                    <Box sx={{ textAlign: 'center', mb: 2 }}>
+                        <img 
+                            src={logo} 
+                            alt="Logo VinoVault" 
+                            style={{ height: '50px', maxWidth: '150px', marginBottom: '8px' }}
+                        />
+                        <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2', mb: 0.5 }}>
                             COMPROBANTE DE VENTA
                         </Typography>
-                        <Typography variant="h6" align="center" color="text.secondary" sx={{ mb: 2 }}>
+                        <Typography variant="body2" color="text.secondary">
                             VinoVault - Sistema de Gestión
                         </Typography>
                     </Box>
 
-                    <Divider sx={{ my: 2 }} />
+                    <Divider sx={{ my: 2, borderColor: '#1976d2' }} />
 
-                    <Box className="receipt-details" sx={{ mb: 3 }}>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+                    {/* Detalles en formato compacto */}
+                    <Box sx={{ mb: 2, fontSize: '0.9rem' }}>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
                             <Box>
-                                <Typography variant="body1" sx={{ mb: 1 }}>
+                                <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500, color: 'black' }}>
                                     <strong>N° Venta:</strong> #{venta?.id}
                                 </Typography>
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    <strong>Fecha:</strong> {venta ? new Date(venta.fecha_venta).toLocaleString('es-ES') : 'N/A'}
+                                <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500, color: 'black' }}>
+                                    <strong>Fecha:</strong> {venta ? new Date(venta.fecha_venta).toLocaleDateString('es-ES') : 'N/A'}
                                 </Typography>
                             </Box>
                             <Box>
-                                <Typography variant="body1" sx={{ mb: 1 }}>
+                                <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500, color: 'black' }}>
                                     <strong>Cliente:</strong> {venta?.cliente_nombre}
                                 </Typography>
-                                <Typography variant="body1" sx={{ mb: 1 }}>
+                                <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500, color: 'black' }}>
                                     <strong>Vendedor:</strong> {venta?.usuario_nombre}
                                 </Typography>
-                                <Typography variant="body1" sx={{ mb: 1 }}>
+                                <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500, color: 'black' }}>
                                     <strong>Almacén:</strong> {venta?.almacen_nombre}
                                 </Typography>
                             </Box>
                         </Box>
                     </Box>
                     
-                    <TableContainer component={Paper} elevation={2} sx={{ my: 3 }}>
-                        <Table>
+                    {/* Tabla más compacta */}
+                    <TableContainer component={Paper} elevation={1} sx={{ my: 2, border: '1px solid #ddd' }}>
+                        <Table size="small">
                             <TableHead>
-                                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                                    <TableCell sx={{ fontWeight: 'bold' }}>Producto</TableCell>
-                                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cantidad</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Precio Unitario</TableCell>
-                                    <TableCell align="right" sx={{ fontWeight: 'bold' }}>Subtotal</TableCell>
+                                <TableRow sx={{ backgroundColor: '#1976d2' }}>
+                                    <TableCell sx={{ fontWeight: 'bold', color: 'white', fontSize: '0.85rem' }}>Producto</TableCell>
+                                    <TableCell align="center" sx={{ fontWeight: 'bold', color: 'white', fontSize: '0.85rem' }}>Cant.</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold', color: 'white', fontSize: '0.85rem' }}>Precio</TableCell>
+                                    <TableCell align="right" sx={{ fontWeight: 'bold', color: 'white', fontSize: '0.85rem' }}>Subtotal</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {venta?.items.map((item, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{item.nombre_producto}</TableCell>
-                                        <TableCell align="center">{item.cantidad}</TableCell>
-                                        <TableCell align="right">${parseFloat(item.precio_unitario).toFixed(2)}</TableCell>
-                                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                                    <TableRow key={index} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#f9f9f9' } }}>
+                                        <TableCell sx={{ fontSize: '0.85rem', py: 1, color: 'black' }}>{item.nombre_producto}</TableCell>
+                                        <TableCell align="center" sx={{ fontSize: '0.85rem', py: 1, color: 'black' }}>{item.cantidad}</TableCell>
+                                        <TableCell align="right" sx={{ fontSize: '0.85rem', py: 1, color: 'black' }}>
+                                            ${parseFloat(item.precio_unitario).toFixed(2)}
+                                        </TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.85rem', py: 1, color: 'black' }}>
                                             ${(parseFloat(item.precio_unitario) * item.cantidad).toFixed(2)}
                                         </TableCell>
                                     </TableRow>
@@ -159,41 +167,44 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                         </Table>
                     </TableContainer>
                     
-                    <Box className="receipt-totals" sx={{ 
-                        mt: 3, 
-                        pt: 2, 
-                        borderTop: '2px solid #ddd',
+                    {/* Totales más compactos */}
+                    <Box sx={{ 
+                        mt: 2, 
+                        pt: 1.5, 
+                        borderTop: '2px solid #1976d2',
                         textAlign: 'right'
                     }}>
-                        <Typography variant="h6" sx={{ mb: 1 }}>
-                            <strong>Subtotal: ${venta ? parseFloat(venta.subtotal).toFixed(2) : '0.00'}</strong>
+                        <Typography variant="body1" sx={{ mb: 0.5, fontWeight: 500, color: 'black' }}>
+                            Subtotal: ${venta ? parseFloat(venta.subtotal).toFixed(2) : '0.00'}
                         </Typography>
-                        <Typography variant="h6" sx={{ mb: 1 }}>
-                            <strong>IVA (10%): ${venta ? parseFloat(venta.impuestos).toFixed(2) : '0.00'}</strong>
+                        <Typography variant="body1" sx={{ mb: 1, fontWeight: 500, color: 'black' }}>
+                            IVA (10%): ${venta ? parseFloat(venta.impuestos).toFixed(2) : '0.00'}
                         </Typography>
-                        <Typography variant="h4" sx={{ 
+                        <Typography variant="h5" sx={{ 
                             fontWeight: 'bold', 
-                            color: 'primary.main',
-                            mt: 2,
+                            color: 'white',
+                            bgcolor: '#1976d2',
                             p: 1,
-                            backgroundColor: '#f5f5f5',
-                            borderRadius: 1
+                            borderRadius: 1,
+                            display: 'inline-block',
+                            minWidth: '200px'
                         }}>
                             TOTAL: ${venta ? parseFloat(venta.total).toFixed(2) : '0.00'}
                         </Typography>
                     </Box>
 
+                    {/* Footer compacto */}
                     <Box sx={{ 
-                        mt: 4, 
-                        pt: 2, 
+                        mt: 2, 
+                        pt: 1.5, 
                         borderTop: '1px solid #ddd',
                         textAlign: 'center'
                     }}>
-                        <Typography variant="body2" color="text.secondary">
-                            Gracias por su compra - Vino Vault
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#1976d2' }}>
+                            ¡Gracias por su compra!
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Fecha de impresión: {new Date().toLocaleString('es-ES')}
+                        <Typography variant="caption" sx={{ color: '#666' }}>
+                            {new Date().toLocaleString('es-ES')}
                         </Typography>
                     </Box>
                 </Box>
