@@ -21,7 +21,7 @@ const StatCard = ({ title, value, icon, color }: StatCardProps) => {
         justifyContent: 'space-between',
         flexGrow: 1,
         height: '100%',
-        minHeight: { xs: 100, sm: 120 }
+        minHeight: { xs: 100, sm: 120 } // Más compacta en móviles
       }}
     >
       <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -40,7 +40,7 @@ const StatCard = ({ title, value, icon, color }: StatCardProps) => {
           component="p" 
           sx={{ 
             fontWeight: 'bold',
-            fontSize: { xs: '1.5rem', sm: '2.125rem' },
+            fontSize: { xs: '1.5rem', sm: '2.125rem' }, // Texto más pequeño en móviles
             lineHeight: 1.2,
             wordBreak: 'break-word'
           }}

@@ -34,6 +34,7 @@ interface Almacen {
 const AddProductModal = ({ open, onClose, onProductAdded }: AddProductModalProps) => {
   const { showNotification } = useAuth();
   
+  // Para ajustar el modal en móviles
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [sku, setSku] = useState('');
@@ -120,7 +121,7 @@ const AddProductModal = ({ open, onClose, onProductAdded }: AddProductModalProps
       onClose={onClose} 
       fullWidth 
       maxWidth="sm"
-      fullScreen={isMobile}
+      fullScreen={isMobile} // Pantalla completa en móviles
       PaperProps={{
         sx: {
           m: isMobile ? 0 : 2,
@@ -164,6 +165,7 @@ const AddProductModal = ({ open, onClose, onProductAdded }: AddProductModalProps
             onChange={(e) => setDescripcion(e.target.value)} 
           />
           
+          {/* Precios en columnas en desktop, apilados en móvil */}
           <Stack direction={isMobile ? "column" : "row"} spacing={2}>
             <TextField 
               label="Precio de Compra" 
@@ -190,6 +192,7 @@ const AddProductModal = ({ open, onClose, onProductAdded }: AddProductModalProps
             Stock Inicial (Opcional)
           </Typography>
           
+          {/* Stock inicial también adaptativo */}
           <Stack direction={isMobile ? "column" : "row"} spacing={2}>
             <TextField 
               label="Cantidad Inicial" 

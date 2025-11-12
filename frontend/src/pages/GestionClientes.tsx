@@ -51,6 +51,7 @@ const GestionClientesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { showNotification } = useAuth();
   
+  // Para cambiar entre tabla y cards
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
@@ -92,6 +93,7 @@ const GestionClientesPage = () => {
     }
   };
 
+  // Card individual para vista móvil
   const ClientCard = ({ cliente }: { cliente: ClienteStats }) => (
     <Card sx={{ mb: 2, elevation: 2 }}>
       <CardContent>
@@ -219,6 +221,7 @@ const GestionClientesPage = () => {
         </Box>
       ) : (
         <>
+          {/* Vista móvil con cards */}
           {isMobile ? (
             <Box>
               {clientes.length > 0 ? (
@@ -235,6 +238,7 @@ const GestionClientesPage = () => {
               )}
             </Box>
           ) : (
+            /* Vista desktop con tabla */
             <Paper elevation={3}>
               <TableContainer>
                 <Table>

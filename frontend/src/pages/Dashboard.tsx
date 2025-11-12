@@ -70,6 +70,7 @@ const DashboardPage = () => {
   const { cartItems, addToCart, getCartItemCount, currency, setCurrency } = useCart();
   useCustomTheme();
   
+  // Para detectar si estamos en móvil o tablet
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
@@ -133,6 +134,7 @@ const DashboardPage = () => {
 
 
 
+  // Opciones del menú móvil
   const navigationItems = [
     { text: 'Gestionar Clientes', to: '/clientes', icon: 'people' },
     { text: 'Ver Historial', to: '/historial', icon: 'history' },
@@ -166,6 +168,7 @@ const DashboardPage = () => {
             src={logo} 
             alt="Logo" 
             style={{ 
+              // Logo más pequeño en móviles
               height: isMobile ? '150px' : isTablet ? '200px' : '300px',
               objectFit: 'contain'
             }} 
@@ -189,6 +192,7 @@ const DashboardPage = () => {
           </div>
         </Box>
 
+        {/* Navegación completa solo en desktop */}
         {!isMobile && (
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <FormControl size="small" sx={{ minWidth: 100 }}>
@@ -223,6 +227,7 @@ const DashboardPage = () => {
           </Box>
         )}
 
+        {/* Navegación compacta para móviles */}
         {isMobile && (
           <Stack direction="row" spacing={1} sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
             <FormControl size="small" sx={{ minWidth: 80 }}>
@@ -258,6 +263,7 @@ const DashboardPage = () => {
         )}
       </Paper>
 
+      {/* Menú lateral para móviles */}
       <Drawer
         anchor="right"
         open={mobileMenuOpen}
@@ -289,6 +295,7 @@ const DashboardPage = () => {
         </Box>
       </Drawer>
 
+      {/* Cards de estadísticas adaptables */}
       {stats && (
         <Box sx={{ 
           display: 'grid',
@@ -377,6 +384,7 @@ const DashboardPage = () => {
         </Box>
       )}
 
+      {/* Botones flotantes adaptativos */}
       <Fab 
         color="primary" 
         aria-label="add" 
