@@ -174,10 +174,10 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'success.main', mb: 1 }}>
         ¡Venta Completada!
       </Typography>
-      <Typography variant="h6" sx={{ mb: 1 }}>
+      <Typography variant="h6" sx={{ mb: 1, color: '#000 !important' }}>
         Venta #{saleSuccessData.ventaId}
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+      <Typography variant="body1" sx={{ mb: 3, color: '#666 !important' }}>
         Cliente: {saleSuccessData.clientName}
       </Typography>
       
@@ -188,18 +188,18 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
         mb: 3,
         textAlign: 'right'
       }}>
-        <Typography variant="body1" sx={{ mb: 0.5 }}>
+        <Typography variant="body1" sx={{ mb: 0.5, color: '#000 !important' }}>
           Subtotal: {formatCurrency(saleSuccessData.subtotal, currency)}
         </Typography>
-        <Typography variant="body1" sx={{ mb: 0.5 }}>
+        <Typography variant="body1" sx={{ mb: 0.5, color: '#000 !important' }}>
           IVA (10%): {formatCurrency(saleSuccessData.impuesto, currency)}
         </Typography>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
           TOTAL: {formatCurrency(saleSuccessData.total, currency)}
         </Typography>
       </Box>
       
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" sx={{ color: '#666 !important' }}>
         {new Date().toLocaleString('es-ES')}
       </Typography>
     </Box>
@@ -207,16 +207,16 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
 
   const renderCheckout = () => (
     <Box>
-      <Typography variant="h6" gutterBottom>Resumen del Carrito</Typography>
+      <Typography variant="h6" gutterBottom sx={{ color: '#000 !important' }}>Resumen del Carrito</Typography>
       <TableContainer component={Paper} sx={{ mb: 2 }}>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>Producto</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cantidad</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>Precio</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold' }}>Subtotal</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Quitar</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: '#000 !important' }}>Producto</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', color: '#000 !important' }}>Cantidad</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>Precio</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>Subtotal</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', color: '#000 !important' }}>Quitar</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -228,17 +228,17 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
               
               return (
                 <TableRow key={item.id}>
-                  <TableCell>
+                  <TableCell sx={{ color: '#000 !important' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <img
                         src={getImageUrl(item.imagen_url)}
                         alt={item.nombre}
                         style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
                       />
-                      <Typography variant="body2">{item.nombre}</Typography>
+                      <Typography variant="body2" sx={{ color: '#000 !important' }}>{item.nombre}</Typography>
                     </Box>
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ color: '#000 !important' }}>
                     <TextField
                       type="number"
                       size="small"
@@ -248,11 +248,11 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                       inputProps={{ min: 1, max: item.total_stock }}
                     />
                   </TableCell>
-                  <TableCell align="right">{formatCurrency(price, currency)}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                  <TableCell align="right" sx={{ color: '#000 !important' }}>{formatCurrency(price, currency)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
                     {formatCurrency(itemSubtotal, currency)}
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell align="center" sx={{ color: '#000 !important' }}>
                     <IconButton size="small" onClick={() => removeFromCart(item.id)}>
                       <Icon color="error">delete</Icon>
                     </IconButton>
@@ -279,9 +279,9 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
           </Select>
         </FormControl>
         <Box sx={{ textAlign: 'right' }}>
-          <Typography variant="body1">Subtotal: {formatCurrency(subtotal, currency)}</Typography>
-          <Typography variant="body1">IVA (10%): {formatCurrency(impuesto, currency)}</Typography>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+          <Typography variant="body1" sx={{ color: '#000 !important' }}>Subtotal: {formatCurrency(subtotal, currency)}</Typography>
+          <Typography variant="body1" sx={{ color: '#000 !important' }}>IVA (10%): {formatCurrency(impuesto, currency)}</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
             Total: {formatCurrency(total, currency)}
           </Typography>
         </Box>
@@ -290,7 +290,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       <Divider sx={{ my: 2 }} />
       
       {/* Selecciones de cliente y almacén */}
-      <Typography variant="h6" sx={{ mb: 2 }}>Detalles de la Venta</Typography>
+      <Typography variant="h6" sx={{ mb: 2, color: '#000 !important' }}>Detalles de la Venta</Typography>
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
         <FormControl fullWidth>
           <InputLabel>Cliente *</InputLabel>
