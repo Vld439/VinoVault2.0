@@ -60,6 +60,13 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
         // Verificar si estamos en móvil
         const isMobile = window.innerWidth <= 768;
         
+        // Debug para móvil
+        if (isMobile) {
+            alert(`📱 MODO MÓVIL - Ancho: ${window.innerWidth}px`);
+        } else {
+            alert(`💻 MODO DESKTOP - Ancho: ${window.innerWidth}px`);
+        }
+        
         if (isMobile) {
             // En móvil, usar el método simple de window.print() con CSS específico
             printMobileReceipt();
@@ -70,10 +77,14 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     };
 
     const printMobileReceipt = () => {
+        alert('📱 Ejecutando printMobileReceipt');
+        
         // Desactivar temporalmente el CSS de print-mobile.css
         const printMobileLinks = Array.from(document.querySelectorAll('link[href*="print-mobile.css"], style')).filter(el => 
             el.textContent?.includes('@media print') || (el as HTMLLinkElement).href?.includes('print-mobile.css')
         ) as HTMLElement[];
+        
+        alert(`🔗 CSS Links encontrados: ${printMobileLinks.length}`);
         
         printMobileLinks.forEach(link => {
             (link as any).disabled = true;
@@ -180,6 +191,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
 
         // Ocultar todo el contenido original
         const allElements = Array.from(document.body.children) as HTMLElement[];
+        console.log('👥 Elementos del body:', allElements.length);
+        
         allElements.forEach(el => {
             if (el !== printElement) {
                 (el as any).originalDisplay = el.style.display;
@@ -189,8 +202,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
         
         // Agregar al DOM
         document.body.appendChild(printElement);
+        console.log('✅ Elemento de impresión agregado al DOM');
 
         // Imprimir
+        alert('🖨️ A punto de llamar window.print()');
         window.print();
 
         // Limpiar después de imprimir
