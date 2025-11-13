@@ -1,4 +1,3 @@
-import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/formatCurrency';
 import logo from '../assets/logo.png';
 
@@ -15,7 +14,6 @@ interface PrintReceiptData {
 }
 
 export const usePrintReceipt = () => {
-  const { currency } = useCart();
 
   const printMobileReceipt = (saleData: PrintReceiptData) => {
     // Crear ventana en pantalla completa para mejor experiencia
@@ -191,7 +189,7 @@ export const usePrintReceipt = () => {
                   </div>
                   <div class="info-row">
                       <strong>Moneda:</strong>
-                      <span>${currency}</span>
+                      <span>USD</span>
                   </div>
               </div>
 
@@ -206,16 +204,14 @@ export const usePrintReceipt = () => {
                   </thead>
                   <tbody>
                       ${saleData.items?.map((item: any) => {
-                          let price = item.precio_venta;
-                          if (currency === 'PYG' && item.precio_venta_pyg) { price = item.precio_venta_pyg; }
-                          if (currency === 'BRL' && item.precio_venta_brl) { price = item.precio_venta_brl; }
-                          const itemSubtotal = parseFloat(price) * item.quantity;
+                          const price = item.precio_venta;
+                          const itemSubtotal = price * item.quantity;
                           return `
                               <tr>
                                   <td>${item.nombre}</td>
                                   <td class="text-center">${item.quantity}</td>
-                                  <td class="text-right">${formatCurrency(price, currency)}</td>
-                                  <td class="text-right">${formatCurrency(itemSubtotal, currency)}</td>
+                                  <td class="text-right">${formatCurrency(price, 'USD')}</td>
+                                  <td class="text-right">${formatCurrency(itemSubtotal, 'USD')}</td>
                               </tr>
                           `;
                       }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
@@ -225,15 +221,15 @@ export const usePrintReceipt = () => {
               <div class="totals-section">
                   <div class="info-row">
                       <strong>Subtotal:</strong>
-                      <span>${formatCurrency(saleData.subtotal, currency)}</span>
+                      <span>${formatCurrency(saleData.subtotal, 'USD')}</span>
                   </div>
                   <div class="info-row">
                       <strong>IVA (10%):</strong>
-                      <span>${formatCurrency(saleData.impuesto, currency)}</span>
+                      <span>${formatCurrency(saleData.impuesto, 'USD')}</span>
                   </div>
                   <div class="info-row total-final">
                       <strong>TOTAL:</strong>
-                      <strong>${formatCurrency(saleData.total, currency)}</strong>
+                      <strong>${formatCurrency(saleData.total, 'USD')}</strong>
                   </div>
               </div>
 
@@ -367,7 +363,7 @@ export const usePrintReceipt = () => {
                       hour: '2-digit',
                       minute: '2-digit'
                   })}</p>
-                  <p><strong>Moneda:</strong> ${currency}</p>
+                  <p><strong>Moneda:</strong> USD</p>
               </div>
               <div class="receipt-column">
                   <p><strong>Cliente:</strong> ${saleData.clientName || ''}</p>
@@ -387,16 +383,14 @@ export const usePrintReceipt = () => {
               </thead>
               <tbody>
                   ${saleData.items?.map((item: any) => {
-                      let price = item.precio_venta;
-                      if (currency === 'PYG' && item.precio_venta_pyg) { price = item.precio_venta_pyg; }
-                      if (currency === 'BRL' && item.precio_venta_brl) { price = item.precio_venta_brl; }
-                      const itemSubtotal = parseFloat(price) * item.quantity;
+                      const price = item.precio_venta;
+                      const itemSubtotal = price * item.quantity;
                       return `
                           <tr>
                               <td>${item.nombre}</td>
                               <td class="text-center">${item.quantity}</td>
-                              <td class="text-right">${formatCurrency(price, currency)}</td>
-                              <td class="text-right">${formatCurrency(itemSubtotal, currency)}</td>
+                              <td class="text-right">${formatCurrency(price, 'USD')}</td>
+                              <td class="text-right">${formatCurrency(itemSubtotal, 'USD')}</td>
                           </tr>
                       `;
                   }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
@@ -407,15 +401,15 @@ export const usePrintReceipt = () => {
               <div style="float: right; width: 300px;">
                   <div class="total-row">
                       <span>Subtotal:</span>
-                      <span>${formatCurrency(saleData.subtotal, currency)}</span>
+                      <span>${formatCurrency(saleData.subtotal, 'USD')}</span>
                   </div>
                   <div class="total-row">
                       <span>IVA (10%):</span>
-                      <span>${formatCurrency(saleData.impuesto, currency)}</span>
+                      <span>${formatCurrency(saleData.impuesto, 'USD')}</span>
                   </div>
                   <div class="total-row total-final">
                       <span>TOTAL:</span>
-                      <span>${formatCurrency(saleData.total, currency)}</span>
+                      <span>${formatCurrency(saleData.total, 'USD')}</span>
                   </div>
               </div>
               <div style="clear: both;"></div>

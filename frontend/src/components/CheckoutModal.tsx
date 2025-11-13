@@ -62,10 +62,18 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
   const [clienteEsExtranjero, setClienteEsExtranjero] = useState(false);
   const [saleSuccessData, setSaleSuccessData] = useState<any>(null);
 
-  // Cálculos de totales
-  const subtotal = getCartSubTotal();
-  const impuesto = clienteEsExtranjero ? 0 : subtotal * 0.10;
-  const total = subtotal + impuesto;
+  // Cálculos para mostrar al usuario (según moneda seleccionada)
+  const subtotalDisplay = getCartSubTotal();
+  const impuestoDisplay = clienteEsExtranjero ? 0 : subtotalDisplay * 0.10;
+  const totalDisplay = subtotalDisplay + impuestoDisplay;
+  
+  // Cálculos para guardar en BD (siempre USD)
+  const subtotalUSD = cartItems.reduce((total, item) => {
+    const priceUSD = parseFloat(item.precio_venta);
+    return total + (priceUSD * item.quantity);
+  }, 0);
+  const impuestoUSD = clienteEsExtranjero ? 0 : subtotalUSD * 0.10;
+  const totalUSD = subtotalUSD + impuestoUSD;
 
   const fetchClientes = useCallback(async () => {
     try {
@@ -100,15 +108,15 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
     const ventaData = {
       cliente_id: selectedCliente,
       almacen_id: selectedAlmacen,
-      moneda: currency,
+      moneda: 'USD', // Siempre guardar en USD
       items: cartItems.map(item => ({
         producto_id: item.id,
         cantidad: item.quantity,
-        precio_unitario: item.precio_venta
+        precio_unitario: item.precio_venta // precio_venta ya está en USD
       })),
-      subtotal: subtotal,
-      impuesto: impuesto,
-      total: total,
+      subtotal: subtotalUSD,
+      impuesto: impuestoUSD,
+      total: totalUSD,
     };
     
     const clientName = clientes.find(c => c.id === Number(selectedCliente))?.nombre;
@@ -126,9 +134,9 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
         items: cartItems,
         fecha: new Date(),
         vendedor: user?.nombre_completo,
-        total,
-        subtotal,
-        impuesto
+        total: totalUSD,
+        subtotal: subtotalUSD,
+        impuesto: impuestoUSD
       });
 
       clearCart();
@@ -190,13 +198,13 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
         textAlign: 'right'
       }}>
         <Typography variant="body1" sx={{ mb: 0.5, color: '#000 !important' }}>
-          Subtotal: {formatCurrency(saleSuccessData.subtotal, currency)}
+          Subtotal: {formatCurrency(subtotalDisplay, currency)}
         </Typography>
         <Typography variant="body1" sx={{ mb: 0.5, color: '#000 !important' }}>
-          IVA (10%): {formatCurrency(saleSuccessData.impuesto, currency)}
+          IVA (10%): {formatCurrency(impuestoDisplay, currency)}
         </Typography>
         <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
-          TOTAL: {formatCurrency(saleSuccessData.total, currency)}
+          TOTAL: {formatCurrency(totalDisplay, currency)}
         </Typography>
       </Box>
       
@@ -222,10 +230,14 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
           </TableHead>
           <TableBody>
             {cartItems.map(item => {
-              let price = item.precio_venta;
-              if (currency === 'PYG' && item.precio_venta_pyg) { price = item.precio_venta_pyg; }
-              if (currency === 'BRL' && item.precio_venta_brl) { price = item.precio_venta_brl; }
-              const itemSubtotal = parseFloat(price) * item.quantity;
+              // Mostrar precio según moneda seleccionada
+              let displayPrice = parseFloat(item.precio_venta); // Base USD
+              if (currency === 'PYG' && item.precio_venta_pyg) { 
+                displayPrice = parseFloat(item.precio_venta_pyg); 
+              } else if (currency === 'BRL' && item.precio_venta_brl) { 
+                displayPrice = parseFloat(item.precio_venta_brl); 
+              }
+              const itemSubtotal = displayPrice * item.quantity;
               
               return (
                 <TableRow key={item.id}>
@@ -249,7 +261,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                       inputProps={{ min: 1, max: item.total_stock }}
                     />
                   </TableCell>
-                  <TableCell align="right" sx={{ color: '#000 !important' }}>{formatCurrency(price, currency)}</TableCell>
+                  <TableCell align="right" sx={{ color: '#000 !important' }}>{formatCurrency(displayPrice, currency)}</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
                     {formatCurrency(itemSubtotal, currency)}
                   </TableCell>
@@ -280,10 +292,10 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
           </Select>
         </FormControl>
         <Box sx={{ textAlign: 'right' }}>
-          <Typography variant="body1" sx={{ color: '#000 !important' }}>Subtotal: {formatCurrency(subtotal, currency)}</Typography>
-          <Typography variant="body1" sx={{ color: '#000 !important' }}>IVA (10%): {formatCurrency(impuesto, currency)}</Typography>
+          <Typography variant="body1" sx={{ color: '#000 !important' }}>Subtotal: {formatCurrency(subtotalDisplay, currency)}</Typography>
+          <Typography variant="body1" sx={{ color: '#000 !important' }}>IVA (10%): {formatCurrency(impuestoDisplay, currency)}</Typography>
           <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
-            Total: {formatCurrency(total, currency)}
+            Total: {formatCurrency(totalDisplay, currency)}
           </Typography>
         </Box>
       </Box>

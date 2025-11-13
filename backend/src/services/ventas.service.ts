@@ -124,6 +124,7 @@ export const obtenerHistorialVentas = async () => {
             v.subtotal,
             COALESCE(v.impuesto, 0) AS impuestos,
             v.total,
+            v.moneda,
             (SELECT json_agg(
                 json_build_object(
                     'nombre_producto', p.nombre,

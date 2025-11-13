@@ -9,6 +9,8 @@ import '../assets/print-mobile.css';
 import { axiosInstance, useAuth } from '../context/AuthContext';
 import { Link as RouterLink } from 'react-router-dom';
 import { format } from 'date-fns';
+import { formatCurrency } from '../utils/formatCurrency';
+import { useCart } from '../context/CartContext';
 import { es } from 'date-fns/locale';
 import ReceiptModal from '../components/ReceiptModal';
 
@@ -27,6 +29,7 @@ interface Venta {
     subtotal: string;
     impuestos: string;
     total: string;
+    moneda: string;
     items: VentaItem[];
 }
 
@@ -52,6 +55,23 @@ const HistorialPage = () => {
     const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
     const [vistaActual, setVistaActual] = useState<'ventas' | 'movimientos'>('ventas');
     const { showNotification } = useAuth();
+    const { currency } = useCart();
+    
+    const [exchangeRates, setExchangeRates] = useState<{PYG: number, BRL: number} | null>(null);
+    
+    // Cargar tasas de cambio
+    useEffect(() => {
+        const fetchRates = async () => {
+            try {
+                const response = await axiosInstance.get('/dashboard/exchange-rates');
+                setExchangeRates(response.data);
+            } catch (error) {
+                console.warn('Error cargando tasas:', error);
+                setExchangeRates({ PYG: 7500, BRL: 5 }); // Fallback
+            }
+        };
+        fetchRates();
+    }, []);
 
     useEffect(() => {
         fetchData();
@@ -131,7 +151,14 @@ const HistorialPage = () => {
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
-                            ${Number(venta.total).toFixed(2)}
+                            {(() => {
+                                const totalUSD = Number(venta.total);
+                                const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+                                let converted = totalUSD;
+                                if (currency === 'PYG') converted = totalUSD * rates.PYG;
+                                if (currency === 'BRL') converted = totalUSD * rates.BRL;
+                                return formatCurrency(converted, currency);
+                            })()}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                             Total
@@ -367,7 +394,14 @@ const HistorialPage = () => {
                                                     />
                                                 </TableCell>
                                                 <TableCell align="right">
-                                                    ${Number(venta.total).toFixed(2)}
+                                                    {(() => {
+                                                        const totalUSD = Number(venta.total);
+                                                        const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+                                                        let converted = totalUSD;
+                                                        if (currency === 'PYG') converted = totalUSD * rates.PYG;
+                                                        if (currency === 'BRL') converted = totalUSD * rates.BRL;
+                                                        return formatCurrency(converted, currency);
+                                                    })()}
                                                 </TableCell>
                                                 <TableCell align="center">
                                                     <IconButton

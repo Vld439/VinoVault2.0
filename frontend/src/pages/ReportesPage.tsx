@@ -1,5 +1,5 @@
 // src/pages/ReportesPage.tsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Container, Typography, Paper, Box, Button, CircularProgress,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -11,6 +11,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAuth, axiosInstance } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/formatCurrency';
 import { useReactToPrint } from 'react-to-print';
 import { format } from 'date-fns';
@@ -50,6 +51,11 @@ interface ProductoStock {
   estado_stock: 'Crítico' | 'Bajo' | 'Normal' | 'Alto';
 }
 
+interface ExchangeRates {
+  PYG: number;
+  BRL: number;
+}
+
 const ReportesPage = () => {
   const [tabValue, setTabValue] = useState(0);
   const [reporte, setReporte] = useState<VentaReporte[]>([]);
@@ -57,8 +63,28 @@ const ReportesPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [fechaInicio, setFechaInicio] = useState<Date | null>(new Date());
   const [fechaFin, setFechaFin] = useState<Date | null>(new Date());
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(null);
   const { showNotification } = useAuth();
+  const { currency } = useCart();
   const printRef = useRef(null);
+
+  // Cargar tasas de cambio al montar el componente
+  useEffect(() => {
+    const fetchExchangeRates = async () => {
+      try {
+        const response = await axiosInstance.get('/dashboard/exchange-rates');
+        setExchangeRates(response.data);
+        console.log('Tasas de cambio cargadas:', response.data);
+      } catch (error) {
+        console.error('Error al cargar tasas de cambio:', error);
+        showNotification('Error al cargar tasas de cambio. Usando tasas aproximadas.', 'warning');
+        // Tasas de respaldo si falla la API
+        setExchangeRates({ PYG: 7500, BRL: 5 });
+      }
+    };
+
+    fetchExchangeRates();
+  }, [showNotification]);
 
   const handleGenerarReporte = async () => {
     if (tabValue === 0) {
@@ -129,12 +155,30 @@ const ReportesPage = () => {
     documentTitle: `Reporte-${tabValue === 0 ? 'Ventas' : 'Stock'}-${format(new Date(), 'yyyy-MM-dd')}`
   });
   
-  // Calcula los totales del reporte
+  // Calcula los totales del reporte (los datos están en USD, convertimos según la moneda seleccionada)
   const totales = reporte.reduce((acc, venta) => {
     if (venta.estado === 'Completada') {
-      const totalUSD = parseFloat(venta.total) / (venta.moneda === 'PYG' ? 7500 : venta.moneda === 'BRL' ? 5 : 1); // Simplificado, idealmente usar tasas
-      acc.total += totalUSD;
-      acc.impuesto += parseFloat(venta.impuesto) / (venta.moneda === 'PYG' ? 7500 : venta.moneda === 'BRL' ? 5 : 1);
+      // Los datos vienen en USD desde la base de datos
+      const totalUSD = parseFloat(venta.total);
+      const impuestoUSD = parseFloat(venta.impuesto);
+      
+      // Usar tasas reales del API o valores por defecto
+      const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+      
+      // Convertir de USD a la moneda seleccionada
+      let totalEnMonedaSeleccionada = totalUSD;
+      let impuestoEnMonedaSeleccionada = impuestoUSD;
+      
+      if (currency === 'PYG') {
+        totalEnMonedaSeleccionada = totalUSD * rates.PYG;
+        impuestoEnMonedaSeleccionada = impuestoUSD * rates.PYG;
+      } else if (currency === 'BRL') {
+        totalEnMonedaSeleccionada = totalUSD * rates.BRL;
+        impuestoEnMonedaSeleccionada = impuestoUSD * rates.BRL;
+      }
+      
+      acc.total += totalEnMonedaSeleccionada;
+      acc.impuesto += impuestoEnMonedaSeleccionada;
     }
     return acc;
   }, { total: 0, impuesto: 0 });
@@ -274,7 +318,7 @@ const ReportesPage = () => {
                 </Box>
                 <Box sx={{ textAlign: 'center', minWidth: '120px' }}>
                   <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2 !important', fontSize: '24px' }}>
-                    {formatCurrency(totales.total, 'USD')}
+                    {formatCurrency(totales.total, currency)}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#666 !important', fontSize: '11px' }}>
                     Total Facturado
@@ -339,13 +383,52 @@ const ReportesPage = () => {
                         />
                       </TableCell>
                       <TableCell align="right" sx={{ color: '#000 !important' }}>
-                        {formatCurrency(parseFloat(venta.total) - parseFloat(venta.impuesto), venta.moneda)}
+                        {(() => {
+                          // Los datos están en USD, convertir a moneda seleccionada
+                          const subtotalUSD = parseFloat(venta.total) - parseFloat(venta.impuesto);
+                          const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+                          
+                          let subtotalConvertido = subtotalUSD;
+                          if (currency === 'PYG') {
+                            subtotalConvertido = subtotalUSD * rates.PYG;
+                          } else if (currency === 'BRL') {
+                            subtotalConvertido = subtotalUSD * rates.BRL;
+                          }
+                          
+                          return formatCurrency(subtotalConvertido, currency);
+                        })()}
                       </TableCell>
                       <TableCell align="right" sx={{ color: '#000 !important' }}>
-                        {formatCurrency(venta.impuesto, venta.moneda)}
+                        {(() => {
+                          // Los datos están en USD, convertir a moneda seleccionada
+                          const impuestoUSD = parseFloat(venta.impuesto);
+                          const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+                          
+                          let impuestoConvertido = impuestoUSD;
+                          if (currency === 'PYG') {
+                            impuestoConvertido = impuestoUSD * rates.PYG;
+                          } else if (currency === 'BRL') {
+                            impuestoConvertido = impuestoUSD * rates.BRL;
+                          }
+                          
+                          return formatCurrency(impuestoConvertido, currency);
+                        })()}
                       </TableCell>
                       <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
-                        {formatCurrency(venta.total, venta.moneda)}
+                        {(() => {
+                          // Los datos están en USD, convertir a moneda seleccionada
+                          const totalUSD = parseFloat(venta.total);
+                          const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+                          
+                          let totalConvertido = totalUSD;
+                          if (currency === 'PYG') {
+                            totalConvertido = totalUSD * rates.PYG;
+                          } else if (currency === 'BRL') {
+                            totalConvertido = totalUSD * rates.BRL;
+                          }
+                          
+                          return formatCurrency(totalConvertido, currency);
+                        })()}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -378,17 +461,17 @@ const ReportesPage = () => {
                 </Box>
                 <Box sx={{ flex: 1, minWidth: '250px' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1" sx={{ color: '#000 !important' }}>Total Impuestos (USD):</Typography>
+                    <Typography variant="body1" sx={{ color: '#000 !important' }}>Total Impuestos ({currency}):</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
-                      {formatCurrency(totales.impuesto, 'USD')}
+                      {formatCurrency(totales.impuesto, currency)}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
-                      TOTAL GENERAL (USD):
+                      TOTAL GENERAL ({currency}):
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
-                      {formatCurrency(totales.total, 'USD')}
+                      {formatCurrency(totales.total, currency)}
                     </Typography>
                   </Box>
                 </Box>
