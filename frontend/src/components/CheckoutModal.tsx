@@ -61,6 +61,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
   const [clienteEsExtranjero, setClienteEsExtranjero] = useState(false);
   const [saleSuccessData, setSaleSuccessData] = useState<any>(null);
+  const [exchangeRates, setExchangeRates] = useState<{ PYG: number; BRL: number } | null>(null);
 
   // Cálculos para mostrar al usuario (según moneda seleccionada)
   const subtotalDisplay = getCartSubTotal();
@@ -92,6 +93,27 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
         .catch(() => showNotification('No se pudieron cargar los almacenes.', 'error'));
     }
   }, [open, fetchClientes, showNotification]);
+
+  useEffect(() => {
+    const fetchExchangeRates = async () => {
+      try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const data = await response.json();
+        setExchangeRates({
+          PYG: data.rates.PYG || 7500,
+          BRL: data.rates.BRL || 5
+        });
+      } catch (error) {
+        console.error('Error fetching exchange rates:', error);
+        // Tasas fallback
+        setExchangeRates({ PYG: 7500, BRL: 5 });
+      }
+    };
+
+    if (open) {
+      fetchExchangeRates();
+    }
+  }, [open]);
 
   const handleSelectCliente = (clienteId: string) => {
     setSelectedCliente(clienteId);
@@ -182,33 +204,67 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'success.main', mb: 1 }}>
         ¡Venta Completada!
       </Typography>
-      <Typography variant="h6" sx={{ mb: 1, color: '#000 !important' }}>
+      <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>
         Venta #{saleSuccessData.ventaId}
       </Typography>
-      <Typography variant="body1" sx={{ mb: 3, color: '#666 !important' }}>
+      <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
         Cliente: {saleSuccessData.clientName}
       </Typography>
       
       <Box sx={{ 
-        bgcolor: 'white', 
-        border: '1px solid #e0e0e0',
+        bgcolor: 'background.paper', 
+        border: '1px solid',
+        borderColor: 'divider',
         p: 2, 
         borderRadius: 2, 
         mb: 3,
         textAlign: 'right'
       }}>
-        <Typography variant="body1" sx={{ mb: 0.5, color: '#000 !important' }}>
-          Subtotal: {formatCurrency(subtotalDisplay, currency)}
+        <Typography variant="body1" sx={{ mb: 0.5, color: 'text.primary' }}>
+          Subtotal: {(() => {
+            const subtotalUSD = saleSuccessData.subtotal;
+            if (currency === 'USD') return formatCurrency(subtotalUSD, 'USD');
+            
+            const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+            if (currency === 'PYG') {
+              return formatCurrency(subtotalUSD * rates.PYG, 'PYG');
+            } else if (currency === 'BRL') {
+              return formatCurrency(subtotalUSD * rates.BRL, 'BRL');
+            }
+            return formatCurrency(subtotalUSD, currency);
+          })()}
         </Typography>
-        <Typography variant="body1" sx={{ mb: 0.5, color: '#000 !important' }}>
-          IVA (10%): {formatCurrency(impuestoDisplay, currency)}
+        <Typography variant="body1" sx={{ mb: 0.5, color: 'text.primary' }}>
+          IVA (10%): {(() => {
+            const impuestoUSD = saleSuccessData.impuesto;
+            if (currency === 'USD') return formatCurrency(impuestoUSD, 'USD');
+            
+            const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+            if (currency === 'PYG') {
+              return formatCurrency(impuestoUSD * rates.PYG, 'PYG');
+            } else if (currency === 'BRL') {
+              return formatCurrency(impuestoUSD * rates.BRL, 'BRL');
+            }
+            return formatCurrency(impuestoUSD, currency);
+          })()}
         </Typography>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
-          TOTAL: {formatCurrency(totalDisplay, currency)}
+        <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+          TOTAL: {(() => {
+            const totalUSD = saleSuccessData.total;
+            if (currency === 'USD') return formatCurrency(totalUSD, 'USD');
+            
+            const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+            if (currency === 'PYG') {
+              return formatCurrency(totalUSD * rates.PYG, 'PYG');
+            } else if (currency === 'BRL') {
+              return formatCurrency(totalUSD * rates.BRL, 'BRL');
+            }
+            return formatCurrency(totalUSD, currency);
+          })()}
         </Typography>
       </Box>
       
-      <Typography variant="body2" sx={{ color: '#666 !important' }}>
+      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
         {new Date().toLocaleString('es-ES')}
       </Typography>
     </Box>
@@ -216,16 +272,16 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
 
   const renderCheckout = () => (
     <Box>
-      <Typography variant="h6" gutterBottom sx={{ color: '#000 !important' }}>Resumen del Carrito</Typography>
+      <Typography variant="h6" gutterBottom sx={{ color: 'text.primary' }}>Resumen del Carrito</Typography>
       <TableContainer component={Paper} sx={{ mb: 2 }}>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-              <TableCell sx={{ fontWeight: 'bold', color: '#000 !important' }}>Producto</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', color: '#000 !important' }}>Cantidad</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>Precio</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>Subtotal</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', color: '#000 !important' }}>Quitar</TableCell>
+            <TableRow sx={{ backgroundColor: 'action.hover' }}>
+              <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Producto</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Cantidad</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Precio</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Subtotal</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Quitar</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -241,17 +297,17 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
               
               return (
                 <TableRow key={item.id}>
-                  <TableCell sx={{ color: '#000 !important' }}>
+                  <TableCell sx={{ color: 'text.primary' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <img
                         src={getImageUrl(item.imagen_url)}
                         alt={item.nombre}
                         style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
                       />
-                      <Typography variant="body2" sx={{ color: '#000 !important' }}>{item.nombre}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary' }}>{item.nombre}</Typography>
                     </Box>
                   </TableCell>
-                  <TableCell align="center" sx={{ color: '#000 !important' }}>
+                  <TableCell align="center" sx={{ color: 'text.primary' }}>
                     <TextField
                       type="number"
                       size="small"
@@ -261,11 +317,11 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
                       inputProps={{ min: 1, max: item.total_stock }}
                     />
                   </TableCell>
-                  <TableCell align="right" sx={{ color: '#000 !important' }}>{formatCurrency(displayPrice, currency)}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
+                  <TableCell align="right" sx={{ color: 'text.primary' }}>{formatCurrency(displayPrice, currency)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                     {formatCurrency(itemSubtotal, currency)}
                   </TableCell>
-                  <TableCell align="center" sx={{ color: '#000 !important' }}>
+                  <TableCell align="center" sx={{ color: 'text.primary' }}>
                     <IconButton size="small" onClick={() => removeFromCart(item.id)}>
                       <Icon color="error">delete</Icon>
                     </IconButton>
@@ -292,9 +348,9 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
           </Select>
         </FormControl>
         <Box sx={{ textAlign: 'right' }}>
-          <Typography variant="body1" sx={{ color: '#000 !important' }}>Subtotal: {formatCurrency(subtotalDisplay, currency)}</Typography>
-          <Typography variant="body1" sx={{ color: '#000 !important' }}>IVA (10%): {formatCurrency(impuestoDisplay, currency)}</Typography>
-          <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+          <Typography variant="body1" sx={{ color: 'text.primary' }}>Subtotal: {formatCurrency(subtotalDisplay, currency)}</Typography>
+          <Typography variant="body1" sx={{ color: 'text.primary' }}>IVA (10%): {formatCurrency(impuestoDisplay, currency)}</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
             Total: {formatCurrency(totalDisplay, currency)}
           </Typography>
         </Box>
@@ -303,7 +359,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       <Divider sx={{ my: 2 }} />
       
       {/* Selecciones de cliente y almacén */}
-      <Typography variant="h6" sx={{ mb: 2, color: '#000 !important' }}>Detalles de la Venta</Typography>
+      <Typography variant="h6" sx={{ mb: 2, color: 'text.primary' }}>Detalles de la Venta</Typography>
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
         <FormControl fullWidth>
           <InputLabel>Cliente *</InputLabel>
