@@ -4,7 +4,6 @@ import { useAuth, axiosInstance } from '../context/AuthContext';
 import { getImageUrl } from '../utils/imageUtils';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
@@ -28,6 +27,7 @@ import {
 } from '@mui/material';
 import { Print as PrintIcon, CheckCircle } from '@mui/icons-material';
 import AddClientModal from './AddClientModal';
+import ReceiptModal from './ReceiptModal';
 import { formatCurrency } from '../utils/formatCurrency';
 import logo from '../assets/logo.png';
 import { usePrintReceipt } from '../hooks/usePrintReceipt';
@@ -61,6 +61,8 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
   const [clienteEsExtranjero, setClienteEsExtranjero] = useState(false);
   const [saleSuccessData, setSaleSuccessData] = useState<any>(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [receiptVentaData, setReceiptVentaData] = useState<any>(null);
   const [exchangeRates, setExchangeRates] = useState<{ PYG: number; BRL: number } | null>(null);
 
   // Cálculos para mostrar al usuario (según moneda seleccionada)
@@ -105,7 +107,6 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
         });
       } catch (error) {
         console.error('Error fetching exchange rates:', error);
-        // Tasas fallback
         setExchangeRates({ PYG: 7500, BRL: 5 });
       }
     };
@@ -171,16 +172,38 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
   const handlePrintReceipt = () => {
     if (!saleSuccessData) return;
     
+    // Convertir valores a la moneda seleccionada
+    const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+    let convertedSubtotal = saleSuccessData.subtotal;
+    let convertedImpuesto = saleSuccessData.impuesto;
+    let convertedTotal = saleSuccessData.total;
+    
+    if (currency === 'PYG') {
+      convertedSubtotal = saleSuccessData.subtotal * rates.PYG;
+      convertedImpuesto = saleSuccessData.impuesto * rates.PYG;
+      convertedTotal = saleSuccessData.total * rates.PYG;
+    } else if (currency === 'BRL') {
+      convertedSubtotal = saleSuccessData.subtotal * rates.BRL;
+      convertedImpuesto = saleSuccessData.impuesto * rates.BRL;
+      convertedTotal = saleSuccessData.total * rates.BRL;
+    }
+    
     const printData = {
       ventaId: saleSuccessData.ventaId,
       fecha: saleSuccessData.fecha,
       clientName: saleSuccessData.clientName,
       vendedor: saleSuccessData.vendedor,
       almacenName: saleSuccessData.almacenName,
-      items: saleSuccessData.items,
-      subtotal: saleSuccessData.subtotal,
-      impuesto: saleSuccessData.impuesto,
-      total: saleSuccessData.total
+      items: saleSuccessData.items.map((item: any) => ({
+        ...item,
+        precio_unitario: currency === 'PYG' ? parseFloat(item.precio_venta) * rates.PYG :
+                        currency === 'BRL' ? parseFloat(item.precio_venta) * rates.BRL :
+                        parseFloat(item.precio_venta)
+      })),
+      subtotal: convertedSubtotal,
+      impuesto: convertedImpuesto,
+      total: convertedTotal,
+      currency: currency
     };
     
     handlePrint(printData);
@@ -191,6 +214,49 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
     setSaleSuccessData(null);
     setSelectedCliente('');
     setSelectedAlmacen('');
+  };
+
+  const handleOpenReceiptModal = () => {
+    if (!saleSuccessData) return;
+    
+    // Convertir valores a la moneda seleccionada
+    const rates = exchangeRates || { PYG: 7500, BRL: 5 };
+    let convertedSubtotal = saleSuccessData.subtotal;
+    let convertedImpuesto = saleSuccessData.impuesto;
+    let convertedTotal = saleSuccessData.total;
+    
+    if (currency === 'PYG') {
+      convertedSubtotal = saleSuccessData.subtotal * rates.PYG;
+      convertedImpuesto = saleSuccessData.impuesto * rates.PYG;
+      convertedTotal = saleSuccessData.total * rates.PYG;
+    } else if (currency === 'BRL') {
+      convertedSubtotal = saleSuccessData.subtotal * rates.BRL;
+      convertedImpuesto = saleSuccessData.impuesto * rates.BRL;
+      convertedTotal = saleSuccessData.total * rates.BRL;
+    }
+    
+    // Convertir datos al formato que espera ReceiptModal
+    const receiptVenta = {
+      id: saleSuccessData.ventaId,
+      fecha_venta: new Date().toISOString(),
+      cliente_nombre: saleSuccessData.clientName,
+      usuario_nombre: saleSuccessData.vendedor || user?.nombre_completo || 'Usuario',
+      almacen_nombre: saleSuccessData.almacenName,
+      subtotal: convertedSubtotal.toString(),
+      impuestos: convertedImpuesto.toString(), 
+      total: convertedTotal.toString(),
+      moneda: currency,
+      items: saleSuccessData.items.map((item: any) => ({
+        nombre_producto: item.nombre,
+        cantidad: item.quantity,
+        precio_unitario: currency === 'PYG' ? (parseFloat(item.precio_venta) * rates.PYG).toString() :
+                        currency === 'BRL' ? (parseFloat(item.precio_venta) * rates.BRL).toString() :
+                        item.precio_venta
+      }))
+    };
+    
+    setReceiptVentaData(receiptVenta);
+    setIsReceiptModalOpen(true);
   };
 
   const renderSaleSuccess = () => (
@@ -232,7 +298,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
               return formatCurrency(subtotalUSD * rates.BRL, 'BRL');
             }
             return formatCurrency(subtotalUSD, currency);
-          })()}
+          })()} 
         </Typography>
         <Typography variant="body1" sx={{ mb: 0.5, color: 'text.primary' }}>
           IVA (10%): {(() => {
@@ -246,7 +312,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
               return formatCurrency(impuestoUSD * rates.BRL, 'BRL');
             }
             return formatCurrency(impuestoUSD, currency);
-          })()}
+          })()} 
         </Typography>
         <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
           TOTAL: {(() => {
@@ -260,7 +326,7 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
               return formatCurrency(totalUSD * rates.BRL, 'BRL');
             }
             return formatCurrency(totalUSD, currency);
-          })()}
+          })()} 
         </Typography>
       </Box>
       
@@ -276,12 +342,19 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
       <TableContainer component={Paper} sx={{ mb: 2 }}>
         <Table size="small">
           <TableHead>
-            <TableRow sx={{ backgroundColor: 'action.hover' }}>
-              <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>Producto</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Cantidad</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Precio</TableCell>
-              <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Subtotal</TableCell>
-              <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Quitar</TableCell>
+            <TableRow sx={{ 
+              backgroundColor: '#1976d2', 
+              '& .MuiTableCell-root': { 
+                color: 'white',
+                borderBottom: '1px solid',
+                borderBottomColor: '#1565c0'
+              } 
+            }}>
+              <TableCell sx={{ fontWeight: 'bold' }}>Producto</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Cantidad</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>Precio</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 'bold' }}>Subtotal</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 'bold' }}>Quitar</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -391,9 +464,6 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
   return (
     <>
       <Dialog open={open} onClose={handleCloseModal} fullWidth maxWidth="md">
-        <DialogTitle sx={{ bgcolor: saleSuccessData ? 'success.main' : 'primary.main', color: 'white' }}>
-          {saleSuccessData ? 'Venta Completada' : 'Finalizar Venta'}
-        </DialogTitle>
         <DialogContent>
           {saleSuccessData ? renderSaleSuccess() : renderCheckout()}
         </DialogContent>
@@ -401,6 +471,13 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
           {saleSuccessData ? (
             <>
               <Button onClick={handleCloseModal}>Cerrar</Button>
+              <Button 
+                onClick={handleOpenReceiptModal}
+                variant="outlined" 
+                color="primary"
+              >
+                Ver Comprobante Detallado
+              </Button>
               <Button 
                 onClick={handlePrintReceipt} 
                 variant="contained" 
@@ -433,6 +510,15 @@ const CheckoutModal = ({ open, onClose, onSaleComplete }: CheckoutModalProps) =>
           fetchClientes();
           setSelectedCliente(String(newClient.id));
           setClienteEsExtranjero(newClient.es_extranjero || false);
+        }}
+      />
+      
+      <ReceiptModal 
+        open={isReceiptModalOpen}
+        venta={receiptVentaData}
+        onClose={() => {
+          setIsReceiptModalOpen(false);
+          setReceiptVentaData(null);
         }}
       />
     </>

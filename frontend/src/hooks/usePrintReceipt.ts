@@ -1,4 +1,5 @@
 import { formatCurrency } from '../utils/formatCurrency';
+import { type Currency } from '../context/CartContext';
 import logo from '../assets/logo.png';
 
 interface PrintReceiptData {
@@ -11,6 +12,7 @@ interface PrintReceiptData {
   subtotal: number;
   impuesto: number;
   total: number;
+  currency?: Currency;
 }
 
 export const usePrintReceipt = () => {
@@ -189,7 +191,7 @@ export const usePrintReceipt = () => {
                   </div>
                   <div class="info-row">
                       <strong>Moneda:</strong>
-                      <span>USD</span>
+                      <span>${saleData.currency || 'USD'}</span>
                   </div>
               </div>
 
@@ -204,14 +206,14 @@ export const usePrintReceipt = () => {
                   </thead>
                   <tbody>
                       ${saleData.items?.map((item: any) => {
-                          const price = item.precio_venta;
+                          const price = item.precio_unitario || item.precio_venta;
                           const itemSubtotal = price * item.quantity;
                           return `
                               <tr>
                                   <td>${item.nombre}</td>
                                   <td class="text-center">${item.quantity}</td>
-                                  <td class="text-right">${formatCurrency(price, 'USD')}</td>
-                                  <td class="text-right">${formatCurrency(itemSubtotal, 'USD')}</td>
+                                  <td class="text-right">${formatCurrency(price, (saleData.currency || 'USD') as Currency)}</td>
+                                  <td class="text-right">${formatCurrency(itemSubtotal, (saleData.currency || 'USD') as Currency)}</td>
                               </tr>
                           `;
                       }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
@@ -221,15 +223,15 @@ export const usePrintReceipt = () => {
               <div class="totals-section">
                   <div class="info-row">
                       <strong>Subtotal:</strong>
-                      <span>${formatCurrency(saleData.subtotal, 'USD')}</span>
+                      <span>${formatCurrency(saleData.subtotal, (saleData.currency || 'USD') as Currency)}</span>
                   </div>
                   <div class="info-row">
                       <strong>IVA (10%):</strong>
-                      <span>${formatCurrency(saleData.impuesto, 'USD')}</span>
+                      <span>${formatCurrency(saleData.impuesto, (saleData.currency || 'USD') as Currency)}</span>
                   </div>
                   <div class="info-row total-final">
                       <strong>TOTAL:</strong>
-                      <strong>${formatCurrency(saleData.total, 'USD')}</strong>
+                      <strong>${formatCurrency(saleData.total, (saleData.currency || 'USD') as Currency)}</strong>
                   </div>
               </div>
 
@@ -363,7 +365,7 @@ export const usePrintReceipt = () => {
                       hour: '2-digit',
                       minute: '2-digit'
                   })}</p>
-                  <p><strong>Moneda:</strong> USD</p>
+                  <p><strong>Moneda:</strong> ${saleData.currency || 'USD'}</p>
               </div>
               <div class="receipt-column">
                   <p><strong>Cliente:</strong> ${saleData.clientName || ''}</p>
@@ -383,14 +385,14 @@ export const usePrintReceipt = () => {
               </thead>
               <tbody>
                   ${saleData.items?.map((item: any) => {
-                      const price = item.precio_venta;
+                      const price = item.precio_unitario || item.precio_venta;
                       const itemSubtotal = price * item.quantity;
                       return `
                           <tr>
                               <td>${item.nombre}</td>
                               <td class="text-center">${item.quantity}</td>
-                              <td class="text-right">${formatCurrency(price, 'USD')}</td>
-                              <td class="text-right">${formatCurrency(itemSubtotal, 'USD')}</td>
+                              <td class="text-right">${formatCurrency(price, (saleData.currency || 'USD') as Currency)}</td>
+                              <td class="text-right">${formatCurrency(itemSubtotal, (saleData.currency || 'USD') as Currency)}</td>
                           </tr>
                       `;
                   }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
@@ -401,15 +403,15 @@ export const usePrintReceipt = () => {
               <div style="float: right; width: 300px;">
                   <div class="total-row">
                       <span>Subtotal:</span>
-                      <span>${formatCurrency(saleData.subtotal, 'USD')}</span>
+                      <span>${formatCurrency(saleData.subtotal, (saleData.currency || 'USD') as Currency)}</span>
                   </div>
                   <div class="total-row">
                       <span>IVA (10%):</span>
-                      <span>${formatCurrency(saleData.impuesto, 'USD')}</span>
+                      <span>${formatCurrency(saleData.impuesto, (saleData.currency || 'USD') as Currency)}</span>
                   </div>
                   <div class="total-row total-final">
                       <span>TOTAL:</span>
-                      <span>${formatCurrency(saleData.total, 'USD')}</span>
+                      <span>${formatCurrency(saleData.total, (saleData.currency || 'USD') as Currency)}</span>
                   </div>
               </div>
               <div style="clear: both;"></div>
