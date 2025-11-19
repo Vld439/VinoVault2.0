@@ -55,208 +55,114 @@ Antes de ejecutar el backend, asegurate de crear la base de datos manualmente en
 Podés hacerlo desde **pgAdmin**, **DBeaver**, o la terminal de PostgreSQL:
 
 ```sql
--- Opcional: Elimina la base de datos si ya existe para empezar de cero
--- DROP DATABASE IF EXISTS vino_stock;
+-- 1. Limpieza inicial (Cuidado: borra todo si ya existe)
+DROP TABLE IF EXISTS venta_items CASCADE;
+DROP TABLE IF EXISTS ventas CASCADE;
+DROP TABLE IF EXISTS movimientos_stock CASCADE;
+DROP TABLE IF EXISTS inventario CASCADE;
+DROP TABLE IF EXISTS usuarios CASCADE;
+DROP TABLE IF EXISTS productos CASCADE;
+DROP TABLE IF EXISTS clientes CASCADE;
+DROP TABLE IF EXISTS almacenes CASCADE;
 
--- Creación de Tablas
-CREATE TABLE public.almacenes (
-    id integer NOT NULL,
-    nombre character varying(255) NOT NULL,
-    ubicacion text
+-- 2. Tablas Independientes (No dependen de otras)
+
+CREATE TABLE almacenes (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    ubicacion TEXT
 );
 
-CREATE TABLE public.clientes (
-    id integer NOT NULL,
-    nombre character varying(255) NOT NULL,
-    ruc character varying(50),
-    telefono character varying(50),
-    email character varying(255),
-    fecha_registro timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    es_extranjero boolean DEFAULT false
+CREATE TABLE clientes (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    ruc VARCHAR(50),
+    telefono VARCHAR(50),
+    email VARCHAR(255),
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    es_extranjero BOOLEAN DEFAULT false
 );
 
-CREATE TABLE public.inventario (
-    producto_id integer NOT NULL,
-    almacen_id integer NOT NULL,
-    cantidad integer DEFAULT 0 NOT NULL,
-    fecha_actualizacion timestamp with time zone DEFAULT now()
+CREATE TABLE productos (
+    id SERIAL PRIMARY KEY,
+    sku VARCHAR(100) NOT NULL UNIQUE, -- El SKU debe ser único
+    nombre VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    precio_compra NUMERIC(10,2),
+    precio_venta NUMERIC(10,2),
+    fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    imagen_url VARCHAR(255)
 );
 
-CREATE TABLE public.movimientos_stock (
-    id integer NOT NULL,
-    producto_id integer NOT NULL,
-    almacen_id integer NOT NULL,
-    tipo_movimiento character varying(50) NOT NULL,
-    cantidad integer NOT NULL,
-    fecha_movimiento timestamp with time zone DEFAULT now(),
-    usuario_id integer
+CREATE TABLE usuarios (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    contrasena_hash VARCHAR(255) NOT NULL,
+    nombre_completo VARCHAR(255),
+    rol VARCHAR(50) DEFAULT 'vendedor' NOT NULL,
+    activo BOOLEAN DEFAULT true,
+    fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE public.productos (
-    id integer NOT NULL,
-    sku character varying(100) NOT NULL,
-    nombre character varying(255) NOT NULL,
-    descripcion text,
-    precio_compra numeric(10,2),
-    precio_venta numeric(10,2),
-    fecha_creacion timestamp with time zone DEFAULT now(),
-    imagen_url character varying(255)
+-- 3. Tablas Dependientes (Tienen Foreign Keys)
+
+CREATE TABLE inventario (
+    producto_id INTEGER NOT NULL,
+    almacen_id INTEGER NOT NULL,
+    cantidad INTEGER DEFAULT 0 NOT NULL,
+    fecha_actualizacion TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    -- Llave primaria compuesta
+    PRIMARY KEY (producto_id, almacen_id),
+    -- Relaciones
+    CONSTRAINT fk_inventario_producto FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_inventario_almacen FOREIGN KEY (almacen_id) REFERENCES almacenes(id) ON DELETE CASCADE
 );
 
-CREATE TABLE public.usuarios (
-    id integer NOT NULL,
-    email character varying(255) NOT NULL,
-    contrasena_hash character varying(255) NOT NULL,
-    nombre_completo character varying(255),
-    rol character varying(50) DEFAULT 'vendedor'::character varying NOT NULL,
-    activo boolean DEFAULT true,
-    fecha_creacion timestamp with time zone DEFAULT now()
+CREATE TABLE movimientos_stock (
+    id SERIAL PRIMARY KEY,
+    producto_id INTEGER NOT NULL,
+    almacen_id INTEGER NOT NULL,
+    usuario_id INTEGER, -- Puede ser nulo si se borra el usuario
+    tipo_movimiento VARCHAR(50) NOT NULL, -- Ejemplo: 'Entrada', 'Salida', 'Ajuste'
+    cantidad INTEGER NOT NULL,
+    fecha_movimiento TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    -- Relaciones
+    CONSTRAINT fk_movimiento_producto FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE SET NULL,
+    CONSTRAINT fk_movimiento_almacen FOREIGN KEY (almacen_id) REFERENCES almacenes(id) ON DELETE SET NULL,
+    CONSTRAINT fk_movimiento_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
-CREATE TABLE public.venta_items (
-    id integer NOT NULL,
-    venta_id integer NOT NULL,
-    producto_id integer NOT NULL,
-    cantidad integer NOT NULL,
-    precio_unitario numeric(10,2) NOT NULL
+CREATE TABLE ventas (
+    id SERIAL PRIMARY KEY,
+    cliente_id INTEGER,
+    usuario_id INTEGER,
+    almacen_id INTEGER,
+    fecha_venta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    moneda VARCHAR(3) DEFAULT 'USD',
+    subtotal NUMERIC(10,2),
+    impuesto NUMERIC(10,2),
+    total NUMERIC(10,2) NOT NULL,
+    estado VARCHAR(50) DEFAULT 'Completada',
+    -- Relaciones
+    CONSTRAINT fk_ventas_cliente FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+    CONSTRAINT fk_ventas_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    CONSTRAINT fk_ventas_almacen FOREIGN KEY (almacen_id) REFERENCES almacenes(id)
 );
 
-CREATE TABLE public.ventas (
-    id integer NOT NULL,
-    cliente_id integer,
-    usuario_id integer,
-    fecha_venta timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    total numeric(10,2) NOT NULL,
-    estado character varying(50) DEFAULT 'Completada'::character varying,
-    moneda character varying(3) DEFAULT 'USD'::character varying,
-    almacen_id integer,
-    subtotal numeric(10,2),
-    impuesto numeric(10,2)
+CREATE TABLE venta_items (
+    id SERIAL PRIMARY KEY,
+    venta_id INTEGER NOT NULL,
+    producto_id INTEGER NOT NULL,
+    cantidad INTEGER NOT NULL,
+    precio_unitario NUMERIC(10,2) NOT NULL,
+    -- Relaciones
+    CONSTRAINT fk_items_venta FOREIGN KEY (venta_id) REFERENCES ventas(id) ON DELETE CASCADE, -- Si borro venta, borro sus items
+    CONSTRAINT fk_items_producto FOREIGN KEY (producto_id) REFERENCES productos(id)
 );
 
--- Creación de Secuencias (para autoincremento de IDs)
-CREATE SEQUENCE public.almacenes_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE public.almacenes_id_seq OWNED BY public.almacenes.id;
-
-CREATE SEQUENCE public.clientes_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE public.clientes_id_seq OWNED BY public.clientes.id;
-
-CREATE SEQUENCE public.movimientos_stock_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE public.movimientos_stock_id_seq OWNED BY public.movimientos_stock.id;
-
-CREATE SEQUENCE public.productos_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE public.productos_id_seq OWNED BY public.productos.id;
-
-CREATE SEQUENCE public.usuarios_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE public.usuarios_id_seq OWNED BY public.usuarios.id;
-
-CREATE SEQUENCE public.venta_items_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE public.venta_items_id_seq OWNED BY public.venta_items.id;
-
-CREATE SEQUENCE public.ventas_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-ALTER SEQUENCE public.ventas_id_seq OWNED BY public.ventas.id;
-
--- Configuración de valores por defecto (autoincremento)
-ALTER TABLE ONLY public.almacenes ALTER COLUMN id SET DEFAULT nextval('public.almacenes_id_seq'::regclass);
-ALTER TABLE ONLY public.clientes ALTER COLUMN id SET DEFAULT nextval('public.clientes_id_seq'::regclass);
-ALTER TABLE ONLY public.movimientos_stock ALTER COLUMN id SET DEFAULT nextval('public.movimientos_stock_id_seq'::regclass);
-ALTER TABLE ONLY public.productos ALTER COLUMN id SET DEFAULT nextval('public.productos_id_seq'::regclass);
-ALTER TABLE ONLY public.usuarios ALTER COLUMN id SET DEFAULT nextval('public.usuarios_id_seq'::regclass);
-ALTER TABLE ONLY public.venta_items ALTER COLUMN id SET DEFAULT nextval('public.venta_items_id_seq'::regclass);
-ALTER TABLE ONLY public.ventas ALTER COLUMN id SET DEFAULT nextval('public.ventas_id_seq'::regclass);
-
--- Configuración de Claves Primarias (PK)
-ALTER TABLE ONLY public.almacenes
-    ADD CONSTRAINT almacenes_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY public.clientes
-    ADD CONSTRAINT clientes_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY public.inventario
-    ADD CONSTRAINT inventario_pkey PRIMARY KEY (producto_id, almacen_id);
-ALTER TABLE ONLY public.movimientos_stock
-    ADD CONSTRAINT movimientos_stock_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY public.productos
-    ADD CONSTRAINT productos_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY public.usuarios
-    ADD CONSTRAINT usuarios_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY public.venta_items
-    ADD CONSTRAINT venta_items_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY public.ventas
-    ADD CONSTRAINT ventas_pkey PRIMARY KEY (id);
-
--- Configuración de Claves Únicas (UNIQUE)
-ALTER TABLE ONLY public.productos
-    ADD CONSTRAINT productos_sku_key UNIQUE (sku);
-ALTER TABLE ONLY public.usuarios
-    ADD CONSTRAINT usuarios_email_key UNIQUE (email);
-
--- Configuración de Claves Foráneas (FK)
-ALTER TABLE ONLY public.movimientos_stock
-    ADD CONSTRAINT fk_usuario FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id) ON DELETE SET NULL;
-ALTER TABLE ONLY public.inventario
-    ADD CONSTRAINT inventario_almacen_id_fkey FOREIGN KEY (almacen_id) REFERENCES public.almacenes(id) ON DELETE CASCADE;
-ALTER TABLE ONLY public.inventario
-    ADD CONSTRAINT inventario_producto_id_fkey FOREIGN KEY (producto_id) REFERENCES public.productos(id) ON DELETE CASCADE;
-ALTER TABLE ONLY public.movimientos_stock
-    ADD CONSTRAINT movimientos_stock_almacen_id_fkey FOREIGN KEY (almacen_id) REFERENCES public.almacenes(id) ON DELETE SET NULL;
-ALTER TABLE ONLY public.movimientos_stock
-    ADD CONSTRAINT movimientos_stock_producto_id_fkey FOREIGN KEY (producto_id) REFERENCES public.productos(id) ON DELETE SET NULL;
-ALTER TABLE ONLY public.venta_items
-    ADD CONSTRAINT venta_items_producto_id_fkey FOREIGN KEY (producto_id) REFERENCES public.productos(id);
-ALTER TABLE ONLY public.venta_items
-    ADD CONSTRAINT venta_items_venta_id_fkey FOREIGN KEY (venta_id) REFERENCES public.ventas(id);
-ALTER TABLE ONLY public.ventas
-    ADD CONSTRAINT ventas_almacen_id_fkey FOREIGN KEY (almacen_id) REFERENCES public.almacenes(id);
-ALTER TABLE ONLY public.ventas
-    ADD CONSTRAINT ventas_cliente_id_fkey FOREIGN KEY (cliente_id) REFERENCES public.clientes(id);
-ALTER TABLE ONLY public.ventas
-    ADD CONSTRAINT ventas_usuario_id_fkey FOREIGN KEY (usuario_id) REFERENCES public.usuarios(id);
-
--- Creación de Índices
-CREATE INDEX idx_productos_nombre ON public.productos USING btree (nombre);
-CREATE INDEX idx_productos_sku ON public.productos USING btree (sku);
-
+-- 4. Índices para mejorar rendimiento (Opcional pero recomendado)
+CREATE INDEX idx_productos_nombre ON productos(nombre);
+CREATE INDEX idx_ventas_fecha ON ventas(fecha_venta);
 ```
 
 ### 🔹 7. Iniciar el backend
