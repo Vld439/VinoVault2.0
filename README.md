@@ -219,7 +219,7 @@ classDiagram
     %% Relaciones
     Usuario "1" --> "*" Venta : Gestiona
     Usuario "1" --> "*" MovimientoStock : Autoriza
-    Cliente "1" --> "*" Venta : Realiza
+    Cliente "1" --> "*" Venta : Relaciona
     
     Almacen "1" --> "*" Inventario : Contiene
     Almacen "1" --> "*" MovimientoStock : Ubicacion
