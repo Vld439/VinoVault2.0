@@ -213,6 +213,113 @@ npm run dev
 
 ---
 
+## 🧾 Diagrama de Clases
+```mermaid
+classDiagram
+    %% Relaciones
+    Usuario "1" --> "*" Venta : Gestiona
+    Usuario "1" --> "*" MovimientoStock : Autoriza
+    Cliente "1" --> "*" Venta : Realiza
+    
+    Almacen "1" --> "*" Inventario : Contiene
+    Almacen "1" --> "*" MovimientoStock : Ubicacion
+    Almacen "1" --> "*" Venta : Origen
+    
+    Producto "1" --> "*" Inventario : Listado en
+    Producto "1" --> "*" VentaItem : Se vende en
+    Producto "1" --> "*" MovimientoStock : Referencia
+    
+    Venta "1" *-- "*" VentaItem : Compone
+    
+    %% Definición de Clases
+    
+    class Usuario {
+        +Integer id
+        +String email
+        +String contrasenaHash
+        +String nombreCompleto
+        +String rol
+        +Boolean activo
+        +login(email, pass)
+        +registrarUsuario()
+        +validarRol()
+    }
+
+    class Cliente {
+        +Integer id
+        +String nombre
+        +String ruc
+        +String telefono
+        +String email
+        +Boolean esExtranjero
+        +verHistorialCompras()
+    }
+
+    class Producto {
+        +Integer id
+        +String sku
+        +String nombre
+        +String descripcion
+        +Float precioCompra
+        +Float precioVenta
+        +String imagenUrl
+        +actualizarPrecio()
+        +subirImagen()
+    }
+
+    class Almacen {
+        +Integer id
+        +String nombre
+        +String ubicacion
+        +consultarStockTotal()
+    }
+
+    class Inventario {
+        +Integer productoId
+        +Integer almacenId
+        +Integer cantidad
+        +DateTime fechaActualizacion
+        +verificarDisponibilidad()
+        +actualizarCantidad()
+    }
+
+    class Venta {
+        +Integer id
+        +Integer clienteId
+        +Integer usuarioId
+        +Integer almacenId
+        +DateTime fechaVenta
+        +Float total
+        +Float subtotal
+        +Float impuesto
+        +String estado
+        +String moneda
+        +agregarItem(item)
+        +calcularTotal()
+        +finalizarVenta()
+    }
+
+    class VentaItem {
+        +Integer id
+        +Integer ventaId
+        +Integer productoId
+        +Integer cantidad
+        +Float precioUnitario
+        +calcularSubtotal()
+    }
+
+    class MovimientoStock {
+        +Integer id
+        +Integer productoId
+        +Integer almacenId
+        +Integer usuarioId
+        +String tipoMovimiento
+        +Integer cantidad
+        +DateTime fechaMovimiento
+        +registrarEntrada()
+        +registrarSalida()
+    }
+```
 ## 🏗️ Arquitectura general del sistema
 
 ```
