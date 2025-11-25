@@ -7,7 +7,8 @@ import {
   Button,
   Box,
   Typography,
-  Alert
+  Alert,
+  useTheme
 } from '@mui/material';
 import { axiosInstance } from '../context/AuthContext';
 
@@ -29,6 +30,7 @@ interface EditImageModalProps {
 const EditImageModal = ({ open, onClose, onImageUpdated, product }: EditImageModalProps) => {
   const [imagen, setImagen] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const theme = useTheme();
 
   // Efecto para limpiar el estado cuando el modal se cierra o cambia de producto
   useEffect(() => {
@@ -109,7 +111,18 @@ const EditImageModal = ({ open, onClose, onImageUpdated, product }: EditImageMod
         )}
         <Box>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button onClick={handleUpdateSubmit} variant="contained" disabled={!imagen}>
+          <Button
+            onClick={handleUpdateSubmit}
+            variant="contained"
+            disabled={!imagen}
+            sx={{
+              color: theme.palette.mode === 'dark' ? '#000000 !important' : '#ffffff !important',
+              fontWeight: 'bold',
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(45deg, #d4af37 30%, #f9d976 90%) !important'
+                : 'linear-gradient(45deg, #722f37 30%, #a54a56 90%) !important',
+            }}
+          >
             Actualizar
           </Button>
         </Box>

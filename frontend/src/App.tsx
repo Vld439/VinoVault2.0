@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Snackbar, Alert, Box, Icon, Switch } from '@mui/material';
+import { Snackbar, Alert, Box } from '@mui/material';
 import { useAuth } from './context/AuthContext';
-import { useCustomTheme } from './context/ThemeContext';
+import Layout from './components/Layout';
 import LoginPage from './pages/Login';
 import DashboardPage from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -13,34 +13,23 @@ import ReportesPage from './pages/ReportesPage';
 
 function App() {
   const { notification, handleCloseNotification } = useAuth();
-  const { mode, toggleTheme } = useCustomTheme();
 
   return (
     <Box sx={{ position: 'relative' }}>
-      {/* Interruptor de Tema fijo en la esquina superior derecha */}
-      <Box sx={{ position: 'fixed', top: 16, right: 16, zIndex: 100 }}>
-        <Icon sx={{ verticalAlign: 'middle', color: 'text.secondary' }}>
-          {mode === 'dark' ? 'dark_mode' : 'light_mode'}
-        </Icon>
-        <Switch 
-          checked={mode === 'dark'} 
-          onChange={toggleTheme} 
-          color="primary"
-        />
-      </Box>
-
       <Router>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          
+
           {/* Rutas Protegidas que requieren inicio de sesión */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/historial" element={<HistorialPage />} />
-            <Route path="/reportes" element={<ReportesPage />} />
-            <Route path="/admin/usuarios" element={<GestionUsuariosPage />} />
-            <Route path="/clientes" element={<GestionClientesPage />} />
-            <Route path="/clientes/:id" element={<PerfilClientePage />} />
+            <Route element={<Layout />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/historial" element={<HistorialPage />} />
+              <Route path="/reportes" element={<ReportesPage />} />
+              <Route path="/admin/usuarios" element={<GestionUsuariosPage />} />
+              <Route path="/clientes" element={<GestionClientesPage />} />
+              <Route path="/clientes/:id" element={<PerfilClientePage />} />
+            </Route>
           </Route>
 
           {/* Ruta por defecto */}
