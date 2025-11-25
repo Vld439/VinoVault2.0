@@ -47,7 +47,10 @@ const HistorialPage = () => {
     // Para responsive
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    
+
+    // Determine the primary brand color based on the theme mode
+    const brandColor = theme.palette.mode === 'dark' ? theme.palette.secondary.main : theme.palette.primary.main;
+
     const [historialVentas, setHistorialVentas] = useState<Venta[]>([]);
     const [movimientosStock, setMovimientosStock] = useState<MovimientoStock[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -56,9 +59,9 @@ const HistorialPage = () => {
     const [vistaActual, setVistaActual] = useState<'ventas' | 'movimientos'>('ventas');
     const { showNotification } = useAuth();
     const { currency } = useCart();
-    
-    const [exchangeRates, setExchangeRates] = useState<{PYG: number, BRL: number} | null>(null);
-    
+
+    const [exchangeRates, setExchangeRates] = useState<{ PYG: number, BRL: number } | null>(null);
+
     // Cargar tasas de cambio
     useEffect(() => {
         const fetchRates = async () => {
@@ -117,14 +120,14 @@ const HistorialPage = () => {
                     <Typography variant="h6" component="h3" sx={{ fontWeight: 'bold' }}>
                         Venta #{venta.id.toString().padStart(6, '0')}
                     </Typography>
-                    <Chip 
-                        label="Completada" 
-                        color="success" 
-                        size="small" 
+                    <Chip
+                        label="Completada"
+                        color="success"
+                        size="small"
                         variant="filled"
                     />
                 </Box>
-                
+
                 <Stack spacing={1.5}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon color="action" sx={{ fontSize: '1.2rem' }}>schedule</Icon>
@@ -132,23 +135,23 @@ const HistorialPage = () => {
                             {format(new Date(venta.fecha_venta), 'dd/MM/yyyy HH:mm', { locale: es })}
                         </Typography>
                     </Box>
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon color="action" sx={{ fontSize: '1.2rem' }}>person</Icon>
                         <Typography variant="body2" color="text.secondary">
                             Cliente: {venta.cliente_nombre}
                         </Typography>
                     </Box>
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon color="action" sx={{ fontSize: '1.2rem' }}>badge</Icon>
                         <Typography variant="body2" color="text.secondary">
                             Vendedor: {venta.usuario_nombre}
                         </Typography>
                     </Box>
-                    
+
                     <Divider />
-                    
+
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
                             {(() => {
@@ -166,10 +169,10 @@ const HistorialPage = () => {
                     </Box>
                 </Stack>
             </CardContent>
-            
+
             <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-                <Button 
-                    variant="contained" 
+                <Button
+                    variant="contained"
                     startIcon={<PrintIcon />}
                     onClick={() => handlePrintReceipt(venta)}
                     size="small"
@@ -188,14 +191,14 @@ const HistorialPage = () => {
                     <Typography variant="h6" component="h3" sx={{ fontWeight: 'bold' }}>
                         #{movimiento.id}
                     </Typography>
-                    <Chip 
+                    <Chip
                         label={movimiento.tipo_movimiento}
                         color={movimiento.cantidad > 0 ? 'success' : 'error'}
-                        size="small" 
+                        size="small"
                         variant="outlined"
                     />
                 </Box>
-                
+
                 <Stack spacing={1.5}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon color="action" sx={{ fontSize: '1.2rem' }}>schedule</Icon>
@@ -203,33 +206,33 @@ const HistorialPage = () => {
                             {format(new Date(movimiento.fecha_movimiento), 'dd/MM/yyyy HH:mm', { locale: es })}
                         </Typography>
                     </Box>
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon color="action" sx={{ fontSize: '1.2rem' }}>inventory</Icon>
                         <Typography variant="body2" color="text.secondary">
                             {movimiento.producto_nombre}
                         </Typography>
                     </Box>
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon color="action" sx={{ fontSize: '1.2rem' }}>warehouse</Icon>
                         <Typography variant="body2" color="text.secondary">
                             Almacén: {movimiento.almacen_nombre}
                         </Typography>
                     </Box>
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon color="action" sx={{ fontSize: '1.2rem' }}>person</Icon>
                         <Typography variant="body2" color="text.secondary">
                             Usuario: {movimiento.usuario_nombre}
                         </Typography>
                     </Box>
-                    
+
                     <Divider />
-                    
+
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Typography 
-                            variant="h5" 
+                        <Typography
+                            variant="h5"
                             color={movimiento.cantidad > 0 ? 'success.main' : 'error.main'}
                             sx={{ fontWeight: 'bold' }}
                         >
@@ -243,24 +246,24 @@ const HistorialPage = () => {
 
     return (
         <Container maxWidth="xl">
-            <Box sx={{ 
-                my: { xs: 2, md: 4 }, 
-                display: 'flex', 
+            <Box sx={{
+                my: { xs: 2, md: 4 },
+                display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'space-between', 
+                justifyContent: 'space-between',
                 alignItems: { xs: 'stretch', sm: 'center' },
                 gap: { xs: 2, sm: 0 }
             }}>
-                <Typography 
-                    variant={isMobile ? "h5" : "h4"} 
+                <Typography
+                    variant={isMobile ? "h5" : "h4"}
                     component="h1"
                     sx={{ textAlign: { xs: 'center', sm: 'left' } }}
                 >
                     {vistaActual === 'ventas' ? 'Historial de Ventas' : 'Movimientos de Stock'}
                 </Typography>
-                <Button 
-                    component={RouterLink} 
-                    to="/dashboard" 
+                <Button
+                    component={RouterLink}
+                    to="/dashboard"
                     variant="outlined"
                     startIcon={<Icon>dashboard</Icon>}
                     fullWidth={isMobile}
@@ -305,7 +308,7 @@ const HistorialPage = () => {
                         <div data-print="true" style={{ padding: '16px', backgroundColor: 'white', color: '#000' }}>
                             {/* Header para impresión móvil */}
                             <Box sx={{ mb: 3, textAlign: 'center', borderBottom: '2px solid #000', pb: 2 }}>
-                                <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold', color: brandColor }}>
                                     VinoVault
                                 </Typography>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1 }}>
@@ -433,7 +436,7 @@ const HistorialPage = () => {
                                                     />
                                                 </TableCell>
                                                 <TableCell align="center">
-                                                    <Typography 
+                                                    <Typography
                                                         color={movimiento.cantidad > 0 ? 'success.main' : 'error.main'}
                                                         sx={{ fontWeight: 'bold' }}
                                                     >

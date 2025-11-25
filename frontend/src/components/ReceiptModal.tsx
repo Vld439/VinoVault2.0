@@ -14,7 +14,8 @@ import {
     TableRow,
     TableCell,
     TableBody,
-    Paper
+    Paper,
+    useTheme // Import useTheme
 } from '@mui/material';
 import { Print as PrintIcon } from '@mui/icons-material';
 import logo from '../assets/logo.png';
@@ -52,9 +53,15 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
     const printRef = useRef<HTMLDivElement>(null);
     const { handlePrint } = usePrintReceipt();
     const { currency } = useCart();
-    
-    const [exchangeRates, setExchangeRates] = useState<{PYG: number, BRL: number} | null>(null);
-    
+    const theme = useTheme();
+
+    // Determine the primary brand color based on the theme mode
+    // Dark mode: Merlot is secondary.main
+    // Light mode: Merlot is primary.main
+    const brandColor = theme.palette.mode === 'dark' ? theme.palette.secondary.main : theme.palette.primary.main;
+
+    const [exchangeRates, setExchangeRates] = useState<{ PYG: number, BRL: number } | null>(null);
+
     // Cargar tasas de cambio
     useEffect(() => {
         const fetchRates = async () => {
@@ -74,7 +81,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             console.error('❌ No hay datos de venta para imprimir');
             return;
         }
-        
+
         // Convertir datos de venta al formato esperado por el hook
         const printData = {
             ventaId: venta.id,
@@ -93,7 +100,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             impuesto: parseFloat(venta.impuestos),
             total: parseFloat(venta.total)
         };
-        
+
         handlePrint(printData);
     };
 
@@ -104,7 +111,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             maxWidth="sm"
             fullWidth
         >
-            <DialogTitle sx={{ bgcolor: '#1976d2', color: 'white', py: 2 }}>
+            <DialogTitle sx={{ bgcolor: brandColor, color: 'white', py: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <PrintIcon />
                     <Typography variant="h6">Comprobante de Venta</Typography>
@@ -112,20 +119,20 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
             </DialogTitle>
 
             <DialogContent sx={{ p: 0 }}>
-                <Box ref={printRef} sx={{ 
-                    bgcolor: 'white', 
+                <Box ref={printRef} sx={{
+                    bgcolor: 'white',
                     color: 'black',
                     p: 3,
                     fontSize: '0.9rem'
                 }}>
                     {/* Header compacto */}
                     <Box sx={{ textAlign: 'center', mb: 2 }}>
-                        <img 
-                            src={logo} 
-                            alt="Logo VinoVault" 
+                        <img
+                            src={logo}
+                            alt="Logo VinoVault"
                             style={{ height: '50px', maxWidth: '150px', marginBottom: '8px' }}
                         />
-                        <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2', mb: 0.5 }}>
+                        <Typography variant="h5" sx={{ fontWeight: 'bold', color: brandColor, mb: 0.5 }}>
                             COMPROBANTE DE VENTA
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
@@ -133,7 +140,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                         </Typography>
                     </Box>
 
-                    <Divider sx={{ my: 2, borderColor: '#1976d2' }} />
+                    <Divider sx={{ my: 2, borderColor: brandColor }} />
 
                     {/* Detalles en formato compacto */}
                     <Box sx={{ mb: 2, fontSize: '0.9rem' }}>
@@ -159,12 +166,12 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                             </Box>
                         </Box>
                     </Box>
-                    
+
                     {/* Tabla más compacta */}
                     <TableContainer component={Paper} elevation={1} sx={{ my: 2, border: '1px solid #ddd' }}>
                         <Table size="small">
                             <TableHead>
-                                <TableRow sx={{ backgroundColor: '#1976d2' }}>
+                                <TableRow sx={{ backgroundColor: brandColor }}>
                                     <TableCell sx={{ fontWeight: 'bold', color: 'white', fontSize: '0.85rem' }}>Producto</TableCell>
                                     <TableCell align="center" sx={{ fontWeight: 'bold', color: 'white', fontSize: '0.85rem' }}>Cant.</TableCell>
                                     <TableCell align="right" sx={{ fontWeight: 'bold', color: 'white', fontSize: '0.85rem' }}>Precio</TableCell>
@@ -184,7 +191,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                                                 if (currency === 'PYG') convertedPrice = priceUSD * rates.PYG;
                                                 if (currency === 'BRL') convertedPrice = priceUSD * rates.BRL;
                                                 return formatCurrency(convertedPrice, currency);
-                                            })()} 
+                                            })()}
                                         </TableCell>
                                         <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.85rem', py: 1, color: 'black' }}>
                                             {(() => {
@@ -201,12 +208,12 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                             </TableBody>
                         </Table>
                     </TableContainer>
-                    
+
                     {/* Totales más compactos */}
-                    <Box sx={{ 
-                        mt: 2, 
-                        pt: 1.5, 
-                        borderTop: '2px solid #1976d2',
+                    <Box sx={{
+                        mt: 2,
+                        pt: 1.5,
+                        borderTop: `2px solid ${brandColor}`,
                         textAlign: 'right'
                     }}>
                         <Typography variant="body1" sx={{ mb: 0.5, fontWeight: 500, color: 'black' }}>
@@ -229,10 +236,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                                 return formatCurrency(converted, currency);
                             })() : '$0.00'}
                         </Typography>
-                        <Typography variant="h5" sx={{ 
-                            fontWeight: 'bold', 
+                        <Typography variant="h5" sx={{
+                            fontWeight: 'bold',
                             color: 'white',
-                            bgcolor: '#1976d2',
+                            bgcolor: brandColor,
                             p: 1,
                             borderRadius: 1,
                             display: 'inline-block',
@@ -250,16 +257,16 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ open, venta, onClose }) => 
                     </Box>
 
                     {/* Footer compacto */}
-                    <Box sx={{ 
-                        mt: 2, 
-                        pt: 1.5, 
+                    <Box sx={{
+                        mt: 2,
+                        pt: 1.5,
                         borderTop: '1px solid #ddd',
                         textAlign: 'center'
                     }}>
-                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#1976d2' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: brandColor }}>
                             ¡Gracias por su compra!
                         </Typography>
-                        <Typography variant="caption" sx={{ color: '#666' }}>
+                        <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                             {new Date().toLocaleString('es-ES')}
                         </Typography>
                     </Box>

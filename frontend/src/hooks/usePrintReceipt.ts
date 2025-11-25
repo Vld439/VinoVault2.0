@@ -1,33 +1,39 @@
+import { useTheme } from '@mui/material';
 import { formatCurrency } from '../utils/formatCurrency';
 import { type Currency } from '../context/CartContext';
 import logo from '../assets/logo.png';
 
 interface PrintReceiptData {
-  ventaId: number;
-  fecha: Date;
-  clientName: string;
-  vendedor: string;
-  almacenName: string;
-  items: any[];
-  subtotal: number;
-  impuesto: number;
-  total: number;
-  currency?: Currency;
+    ventaId: number;
+    fecha: Date;
+    clientName: string;
+    vendedor: string;
+    almacenName: string;
+    items: any[];
+    subtotal: number;
+    impuesto: number;
+    total: number;
+    currency?: Currency;
 }
 
 export const usePrintReceipt = () => {
+    const theme = useTheme();
+    // Determine the primary brand color based on the theme mode
+    // Dark mode: Merlot is secondary.main
+    // Light mode: Merlot is primary.main
+    const brandColor = theme.palette.mode === 'dark' ? theme.palette.secondary.main : theme.palette.primary.main;
 
-  const printMobileReceipt = (saleData: PrintReceiptData) => {
-    // Crear ventana en pantalla completa para mejor experiencia
-    const printWindow = window.open('', '_blank', 'fullscreen=yes,scrollbars=yes');
-    
-    if (!printWindow) {
-      console.warn('No se pudo abrir ventana de impresión. Verifica permisos de pop-up.');
-      return;
-    }
+    const printMobileReceipt = (saleData: PrintReceiptData) => {
+        // Crear ventana en pantalla completa para mejor experiencia
+        const printWindow = window.open('', '_blank', 'fullscreen=yes,scrollbars=yes');
 
-    // HTML con botones de control manual (COPIADO EXACTO del código que funciona)
-    const htmlContent = `
+        if (!printWindow) {
+            console.warn('No se pudo abrir ventana de impresión. Verifica permisos de pop-up.');
+            return;
+        }
+
+        // HTML con botones de control manual (COPIADO EXACTO del código que funciona)
+        const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -57,7 +63,7 @@ export const usePrintReceipt = () => {
                   z-index: 1000;
               }
               .btn {
-                  background: #1976d2;
+                  background: ${brandColor};
                   color: white;
                   border: none;
                   padding: 12px 20px;
@@ -82,7 +88,7 @@ export const usePrintReceipt = () => {
                   margin-bottom: 20px; 
               }
               .header h1 { 
-                  color: #1976d2; 
+                  color: ${brandColor}; 
                   font-size: 28px; 
                   margin: 0 0 10px 0; 
               }
@@ -170,12 +176,12 @@ export const usePrintReceipt = () => {
                   <div class="info-row">
                       <strong>Fecha:</strong>
                       <span>${new Date(saleData.fecha).toLocaleDateString('es-ES', {
-                          year: 'numeric',
-                          month: 'long', 
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                      })}</span>
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })}</span>
                   </div>
                   <div class="info-row">
                       <strong>Cliente:</strong>
@@ -206,9 +212,9 @@ export const usePrintReceipt = () => {
                   </thead>
                   <tbody>
                       ${saleData.items?.map((item: any) => {
-                          const price = item.precio_unitario || item.precio_venta;
-                          const itemSubtotal = price * item.quantity;
-                          return `
+            const price = item.precio_unitario || item.precio_venta;
+            const itemSubtotal = price * item.quantity;
+            return `
                               <tr>
                                   <td>${item.nombre}</td>
                                   <td class="text-center">${item.quantity}</td>
@@ -216,7 +222,7 @@ export const usePrintReceipt = () => {
                                   <td class="text-right">${formatCurrency(itemSubtotal, (saleData.currency || 'USD') as Currency)}</td>
                               </tr>
                           `;
-                      }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
+        }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
                   </tbody>
               </table>
 
@@ -240,12 +246,12 @@ export const usePrintReceipt = () => {
                   <p style="margin: 10px 0; font-size: 16px;">VINOVAULT - Sistema de Gestión de Inventario</p>
                   <p style="margin-top: 15px; font-size: 14px; color: #666;">
                       Documento generado el: ${new Date().toLocaleDateString('es-ES', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                      })}
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })}
                   </p>
               </div>
           </div>
@@ -253,19 +259,19 @@ export const usePrintReceipt = () => {
       </html>
     `;
 
-    // Escribir contenido y enfocar ventana
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.focus();
-  };
+        // Escribir contenido y enfocar ventana
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.focus();
+    };
 
-  const printDesktopReceipt = (saleData: PrintReceiptData) => {
-    // Crear una nueva ventana para imprimir en desktop
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    const printDesktopReceipt = (saleData: PrintReceiptData) => {
+        // Crear una nueva ventana para imprimir en desktop
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
 
-    // Crear el contenido HTML completo optimizado para desktop
-    const htmlContent = `
+        // Crear el contenido HTML completo optimizado para desktop
+        const htmlContent = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -350,7 +356,7 @@ export const usePrintReceipt = () => {
               <div style="text-align: center; margin-bottom: 15px;">
                   <img src="${logo}" alt="VinoVault Logo" style="height: 100px; max-width: 300px;" />
               </div>
-              <h1 style="color: #1976d2; margin: 0;">VINOVAULT</h1>
+              <h1 style="color: ${brandColor}; margin: 0;">VINOVAULT</h1>
               <p style="margin: 5px 0;">Sistema de Gestión de Inventario</p>
               <h2 style="margin: 15px 0;">COMPROBANTE DE VENTA</h2>
           </div>
@@ -359,12 +365,12 @@ export const usePrintReceipt = () => {
               <div class="receipt-column">
                   <p><strong>N° de Venta:</strong> #${saleData.ventaId}</p>
                   <p><strong>Fecha:</strong> ${new Date(saleData.fecha).toLocaleDateString('es-ES', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                  })}</p>
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        })}</p>
                   <p><strong>Moneda:</strong> ${saleData.currency || 'USD'}</p>
               </div>
               <div class="receipt-column">
@@ -385,9 +391,9 @@ export const usePrintReceipt = () => {
               </thead>
               <tbody>
                   ${saleData.items?.map((item: any) => {
-                      const price = item.precio_unitario || item.precio_venta;
-                      const itemSubtotal = price * item.quantity;
-                      return `
+            const price = item.precio_unitario || item.precio_venta;
+            const itemSubtotal = price * item.quantity;
+            return `
                           <tr>
                               <td>${item.nombre}</td>
                               <td class="text-center">${item.quantity}</td>
@@ -395,7 +401,7 @@ export const usePrintReceipt = () => {
                               <td class="text-right">${formatCurrency(itemSubtotal, (saleData.currency || 'USD') as Currency)}</td>
                           </tr>
                       `;
-                  }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
+        }).join('') || '<tr><td colspan="4" class="text-center">No hay productos disponibles</td></tr>'}
               </tbody>
           </table>
 
@@ -421,46 +427,46 @@ export const usePrintReceipt = () => {
               <p><strong>¡Gracias por su compra!</strong></p>
               <p>VINOVAULT - Sistema de Gestión de Inventario</p>
               <p style="font-size: 0.9em;">Impreso el: ${new Date().toLocaleDateString('es-ES', {
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit'
-              })}</p>
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        })}</p>
           </div>
       </body>
       </html>
     `;
 
-    // Escribir el contenido y imprimir
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    
-    // Esperar un momento para que se cargue el contenido
-    printWindow.onload = () => {
-        printWindow.print();
-        printWindow.close();
+        // Escribir el contenido y imprimir
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+
+        // Esperar un momento para que se cargue el contenido
+        printWindow.onload = () => {
+            printWindow.print();
+            printWindow.close();
+        };
     };
-  };
 
-  const handlePrint = (saleData: PrintReceiptData) => {
-    if (!saleData) {
-      console.warn('No hay datos de venta para imprimir');
-      return;
-    }
+    const handlePrint = (saleData: PrintReceiptData) => {
+        if (!saleData) {
+            console.warn('No hay datos de venta para imprimir');
+            return;
+        }
 
-    // Verificar si estamos en móvil
-    const isMobile = window.innerWidth <= 768;
-    
-    if (isMobile) {
-      // En móvil, usar ventana con controles manuales
-      printMobileReceipt(saleData);
-    } else {
-      // En desktop, usar ventana nueva optimizada
-      printDesktopReceipt(saleData);
-    }
-  };
+        // Verificar si estamos en móvil
+        const isMobile = window.innerWidth <= 768;
 
-  return { handlePrint };
+        if (isMobile) {
+            // En móvil, usar ventana con controles manuales
+            printMobileReceipt(saleData);
+        } else {
+            // En desktop, usar ventana nueva optimizada
+            printDesktopReceipt(saleData);
+        }
+    };
+
+    return { handlePrint };
 };

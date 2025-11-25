@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
   Container, Typography, Paper, Box, Button, CircularProgress,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Divider, Chip, Tabs, Tab
+  Divider, Chip, Tabs, Tab, useTheme
 } from '@mui/material';
 import '../assets/print-mobile.css';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -67,6 +67,10 @@ const ReportesPage = () => {
   const { showNotification } = useAuth();
   const { currency } = useCart();
   const printRef = useRef(null);
+  const theme = useTheme();
+
+  // Determine the primary brand color based on the theme mode
+  const brandColor = theme.palette.mode === 'dark' ? theme.palette.secondary.main : theme.palette.primary.main;
 
   // Cargar tasas de cambio al montar el componente
   useEffect(() => {
@@ -93,21 +97,21 @@ const ReportesPage = () => {
         showNotification('Por favor, selecciona ambas fechas.', 'warning');
         return;
       }
-      
+
       // Validar que las fechas no sean futuras
       const today = new Date();
       today.setHours(23, 59, 59, 999); // Establecer al final del día actual
-      
+
       if (fechaInicio > today) {
         showNotification('La fecha de inicio no puede ser futura.', 'warning');
         return;
       }
-      
+
       if (fechaFin > today) {
         showNotification('La fecha fin no puede ser futura.', 'warning');
         return;
       }
-      
+
       if (fechaFin < fechaInicio) {
         showNotification('La fecha fin debe ser posterior a la fecha de inicio.', 'warning');
         return;
@@ -134,9 +138,9 @@ const ReportesPage = () => {
         const response = await axiosInstance.get('/reportes/stock');
         const stockData = response.data.map((producto: any) => ({
           ...producto,
-          estado_stock: producto.total_stock <= 5 ? 'Crítico' : 
-                       producto.total_stock <= 15 ? 'Bajo' : 
-                       producto.total_stock <= 50 ? 'Normal' : 'Alto'
+          estado_stock: producto.total_stock <= 5 ? 'Crítico' :
+            producto.total_stock <= 15 ? 'Bajo' :
+              producto.total_stock <= 50 ? 'Normal' : 'Alto'
         }));
         setReporteStock(stockData);
         if (stockData.length === 0) {
@@ -154,21 +158,21 @@ const ReportesPage = () => {
     contentRef: printRef,
     documentTitle: `Reporte-${tabValue === 0 ? 'Ventas' : 'Stock'}-${format(new Date(), 'yyyy-MM-dd')}`
   });
-  
+
   // Calcula los totales del reporte (los datos están en USD, convertimos según la moneda seleccionada)
   const totales = reporte.reduce((acc, venta) => {
     if (venta.estado === 'Completada') {
       // Los datos vienen en USD desde la base de datos
       const totalUSD = parseFloat(venta.total);
       const impuestoUSD = parseFloat(venta.impuesto);
-      
+
       // Usar tasas reales del API o valores por defecto
       const rates = exchangeRates || { PYG: 7500, BRL: 5 };
-      
+
       // Convertir de USD a la moneda seleccionada
       let totalEnMonedaSeleccionada = totalUSD;
       let impuestoEnMonedaSeleccionada = impuestoUSD;
-      
+
       if (currency === 'PYG') {
         totalEnMonedaSeleccionada = totalUSD * rates.PYG;
         impuestoEnMonedaSeleccionada = impuestoUSD * rates.PYG;
@@ -176,7 +180,7 @@ const ReportesPage = () => {
         totalEnMonedaSeleccionada = totalUSD * rates.BRL;
         impuestoEnMonedaSeleccionada = impuestoUSD * rates.BRL;
       }
-      
+
       acc.total += totalEnMonedaSeleccionada;
       acc.impuesto += impuestoEnMonedaSeleccionada;
     }
@@ -185,67 +189,67 @@ const ReportesPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-        {/* Elementos que NO deben aparecer en impresión */}
-        <Box className="no-print" sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h4" component="h1">Reportes</Typography>
-          <Button component={RouterLink} to="/dashboard" variant="outlined">Volver al Dashboard</Button>
-        </Box>
+      {/* Elementos que NO deben aparecer en impresión */}
+      <Box className="no-print" sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h4" component="h1">Reportes</Typography>
+        <Button component={RouterLink} to="/dashboard" variant="outlined">Volver al Dashboard</Button>
+      </Box>
 
-        <Paper className="no-print" sx={{ mb: 4 }}>
-          <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tab label="Reporte de Ventas" />
-            <Tab label="Stock por Producto" />
-          </Tabs>
-        </Paper>
+      <Paper className="no-print" sx={{ mb: 4 }}>
+        <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tab label="Reporte de Ventas" />
+          <Tab label="Stock por Producto" />
+        </Tabs>
+      </Paper>
 
-        <Paper className="no-print" sx={{ p: 2, mb: 4, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          {tabValue === 0 && (
-            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
-              <DatePicker 
-                label="Fecha Inicio" 
-                value={fechaInicio} 
-                onChange={setFechaInicio}
-                maxDate={new Date()}
-                slotProps={{
-                  textField: {
-                    helperText: fechaInicio && fechaInicio > new Date() ? 'La fecha no puede ser futura' : ''
-                  }
-                }}
-              />
-              <DatePicker 
-                label="Fecha Fin" 
-                value={fechaFin} 
-                onChange={setFechaFin}
-                maxDate={new Date()}
-                minDate={fechaInicio || undefined}
-                slotProps={{
-                  textField: {
-                    helperText: fechaFin && fechaFin > new Date() ? 'La fecha no puede ser futura' : 
-                              fechaFin && fechaInicio && fechaFin < fechaInicio ? 'La fecha fin debe ser posterior a la fecha inicio' : ''
-                  }
-                }}
-              />
-            </LocalizationProvider>
-          )}
-          <Button variant="contained" onClick={handleGenerarReporte} disabled={isLoading}>
-            {tabValue === 0 ? 'Generar Reporte de Ventas' : 'Generar Reporte de Stock'}
-          </Button>
-          <Button 
-            variant="outlined" 
-            onClick={handlePrint} 
-            disabled={(tabValue === 0 ? reporte.length === 0 : reporteStock.length === 0)}
-          >
-            Imprimir Reporte
-          </Button>
-        </Paper>
+      <Paper className="no-print" sx={{ p: 2, mb: 4, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+        {tabValue === 0 && (
+          <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
+            <DatePicker
+              label="Fecha Inicio"
+              value={fechaInicio}
+              onChange={setFechaInicio}
+              maxDate={new Date()}
+              slotProps={{
+                textField: {
+                  helperText: fechaInicio && fechaInicio > new Date() ? 'La fecha no puede ser futura' : ''
+                }
+              }}
+            />
+            <DatePicker
+              label="Fecha Fin"
+              value={fechaFin}
+              onChange={setFechaFin}
+              maxDate={new Date()}
+              minDate={fechaInicio || undefined}
+              slotProps={{
+                textField: {
+                  helperText: fechaFin && fechaFin > new Date() ? 'La fecha no puede ser futura' :
+                    fechaFin && fechaInicio && fechaFin < fechaInicio ? 'La fecha fin debe ser posterior a la fecha inicio' : ''
+                }
+              }}
+            />
+          </LocalizationProvider>
+        )}
+        <Button variant="contained" onClick={handleGenerarReporte} disabled={isLoading}>
+          {tabValue === 0 ? 'Generar Reporte de Ventas' : 'Generar Reporte de Stock'}
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={handlePrint}
+          disabled={(tabValue === 0 ? reporte.length === 0 : reporteStock.length === 0)}
+        >
+          Imprimir Reporte
+        </Button>
+      </Paper>
 
       {isLoading ? (
         <Box className="no-print" sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>
       ) : tabValue === 0 ? (
-        <div 
-          ref={printRef} 
+        <div
+          ref={printRef}
           data-print="true"
-          style={{ 
+          style={{
             padding: '16px',
             backgroundColor: 'white',
             color: '#000'
@@ -255,13 +259,13 @@ const ReportesPage = () => {
           <Box className="print-header" sx={{ mb: 3, backgroundColor: 'white !important', color: '#000 !important' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <img 
-                  src={logo} 
-                  alt="VinoVault Logo" 
+                <img
+                  src={logo}
+                  alt="VinoVault Logo"
                   style={{ height: '100px', maxWidth: '300px' }}
                 />
                 <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold', color: `${brandColor} !important` }}>
                     VinoVault
                   </Typography>
                   <Typography variant="h6" sx={{ color: '#666 !important' }}>
@@ -293,7 +297,7 @@ const ReportesPage = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ textAlign: 'center', minWidth: '120px' }}>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2', fontSize: '24px' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: brandColor, fontSize: '24px' }}>
                     {reporte.length}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#666 !important', fontSize: '11px' }}>
@@ -317,7 +321,7 @@ const ReportesPage = () => {
                   </Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center', minWidth: '120px' }}>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2 !important', fontSize: '24px' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: `${brandColor} !important`, fontSize: '24px' }}>
                     {formatCurrency(totales.total, currency)}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#666 !important', fontSize: '11px' }}>
@@ -332,7 +336,7 @@ const ReportesPage = () => {
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 2, color: '#000 !important' }}>
             Detalle de Ventas
           </Typography>
-          
+
           {reporte.length === 0 ? (
             <Paper sx={{ p: 4, textAlign: 'center', backgroundColor: 'white !important', color: '#000 !important' }}>
               <Typography variant="h6" sx={{ color: '#666 !important' }}>
@@ -356,14 +360,14 @@ const ReportesPage = () => {
                 </TableHead>
                 <TableBody>
                   {reporte.map((venta, index) => (
-                    <TableRow 
-                      key={venta.id} 
+                    <TableRow
+                      key={venta.id}
                       className={venta.estado === 'Anulada' ? 'anulada-row' : ''}
-                      sx={{ 
-                        backgroundColor: venta.estado === 'Anulada' 
-                          ? 'rgba(255, 0, 0, 0.05)' 
-                          : index % 2 === 0 
-                            ? '#f8f9fa' 
+                      sx={{
+                        backgroundColor: venta.estado === 'Anulada'
+                          ? 'rgba(255, 0, 0, 0.05)'
+                          : index % 2 === 0
+                            ? '#f8f9fa'
                             : 'white',
                         '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.08)' }
                       }}
@@ -375,8 +379,8 @@ const ReportesPage = () => {
                       <TableCell sx={{ color: '#000 !important' }}>{venta.cliente_nombre}</TableCell>
                       <TableCell sx={{ color: '#000 !important' }}>{venta.vendedor_nombre}</TableCell>
                       <TableCell>
-                        <Chip 
-                          label={venta.estado} 
+                        <Chip
+                          label={venta.estado}
                           size="small"
                           color={venta.estado === 'Completada' ? 'success' : 'error'}
                           variant={venta.estado === 'Completada' ? 'filled' : 'outlined'}
@@ -387,14 +391,14 @@ const ReportesPage = () => {
                           // Los datos están en USD, convertir a moneda seleccionada
                           const subtotalUSD = parseFloat(venta.total) - parseFloat(venta.impuesto);
                           const rates = exchangeRates || { PYG: 7500, BRL: 5 };
-                          
+
                           let subtotalConvertido = subtotalUSD;
                           if (currency === 'PYG') {
                             subtotalConvertido = subtotalUSD * rates.PYG;
                           } else if (currency === 'BRL') {
                             subtotalConvertido = subtotalUSD * rates.BRL;
                           }
-                          
+
                           return formatCurrency(subtotalConvertido, currency);
                         })()}
                       </TableCell>
@@ -403,14 +407,14 @@ const ReportesPage = () => {
                           // Los datos están en USD, convertir a moneda seleccionada
                           const impuestoUSD = parseFloat(venta.impuesto);
                           const rates = exchangeRates || { PYG: 7500, BRL: 5 };
-                          
+
                           let impuestoConvertido = impuestoUSD;
                           if (currency === 'PYG') {
                             impuestoConvertido = impuestoUSD * rates.PYG;
                           } else if (currency === 'BRL') {
                             impuestoConvertido = impuestoUSD * rates.BRL;
                           }
-                          
+
                           return formatCurrency(impuestoConvertido, currency);
                         })()}
                       </TableCell>
@@ -419,14 +423,14 @@ const ReportesPage = () => {
                           // Los datos están en USD, convertir a moneda seleccionada
                           const totalUSD = parseFloat(venta.total);
                           const rates = exchangeRates || { PYG: 7500, BRL: 5 };
-                          
+
                           let totalConvertido = totalUSD;
                           if (currency === 'PYG') {
                             totalConvertido = totalUSD * rates.PYG;
                           } else if (currency === 'BRL') {
                             totalConvertido = totalUSD * rates.BRL;
                           }
-                          
+
                           return formatCurrency(totalConvertido, currency);
                         })()}
                       </TableCell>
@@ -467,10 +471,10 @@ const ReportesPage = () => {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: `${brandColor} !important` }}>
                       TOTAL GENERAL ({currency}):
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: `${brandColor} !important` }}>
                       {formatCurrency(totales.total, currency)}
                     </Typography>
                   </Box>
@@ -491,10 +495,10 @@ const ReportesPage = () => {
         </div>
       ) : (
         // Reporte de Stock
-        <div 
-          ref={printRef} 
+        <div
+          ref={printRef}
           data-print="true"
-          style={{ 
+          style={{
             padding: '16px',
             backgroundColor: 'white',
             color: '#000'
@@ -504,13 +508,13 @@ const ReportesPage = () => {
           <Box className="print-header" sx={{ mb: 3, backgroundColor: 'white !important', color: '#000 !important' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <img 
-                  src={logo} 
-                  alt="VinoVault Logo" 
+                <img
+                  src={logo}
+                  alt="VinoVault Logo"
                   style={{ height: '100px', maxWidth: '300px' }}
                 />
                 <Box>
-                  <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+                  <Typography variant="h4" sx={{ fontWeight: 'bold', color: `${brandColor} !important` }}>
                     VinoVault
                   </Typography>
                   <Typography variant="h6" sx={{ color: '#666 !important' }}>
@@ -537,7 +541,7 @@ const ReportesPage = () => {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap', gap: 1 }}>
                 <Box sx={{ textAlign: 'center', minWidth: '120px' }}>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#1976d2', fontSize: '24px' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: brandColor, fontSize: '24px' }}>
                     {reporteStock.length}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#666 !important', fontSize: '11px' }}>
@@ -576,7 +580,7 @@ const ReportesPage = () => {
           <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 2, color: '#000 !important' }}>
             Inventario Actual
           </Typography>
-          
+
           {reporteStock.length === 0 ? (
             <Paper sx={{ p: 4, textAlign: 'center', backgroundColor: 'white !important', color: '#000 !important' }}>
               <Typography variant="h6" sx={{ color: '#666 !important' }}>
@@ -604,45 +608,45 @@ const ReportesPage = () => {
                       return orden[a.estado_stock] - orden[b.estado_stock];
                     })
                     .map((producto, index) => (
-                    <TableRow 
-                      key={producto.id} 
-                      sx={{ 
-                        backgroundColor: producto.estado_stock === 'Crítico' 
-                          ? 'rgba(211, 47, 47, 0.1)' 
-                          : producto.estado_stock === 'Bajo'
-                            ? 'rgba(237, 108, 2, 0.1)'
-                            : index % 2 === 0 
-                              ? '#f8f9fa' 
-                              : 'white',
-                        '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.08)' }
-                      }}
-                    >
-                      <TableCell sx={{ fontWeight: 'bold', color: '#000 !important' }}>{producto.sku}</TableCell>
-                      <TableCell sx={{ color: '#000 !important' }}>{producto.nombre}</TableCell>
-                      <TableCell sx={{ color: '#000 !important' }}>{producto.descripcion}</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
-                        {producto.total_stock}
-                      </TableCell>
-                      <TableCell align="right" sx={{ color: '#000 !important' }}>
-                        {formatCurrency(producto.precio_compra, 'USD')}
-                      </TableCell>
-                      <TableCell align="right" sx={{ color: '#000 !important' }}>
-                        {formatCurrency(producto.precio_venta, 'USD')}
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={producto.estado_stock} 
-                          size="small"
-                          color={
-                            producto.estado_stock === 'Crítico' ? 'error' :
-                            producto.estado_stock === 'Bajo' ? 'warning' :
-                            'success'
-                          }
-                          variant="filled"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                      <TableRow
+                        key={producto.id}
+                        sx={{
+                          backgroundColor: producto.estado_stock === 'Crítico'
+                            ? 'rgba(211, 47, 47, 0.1)'
+                            : producto.estado_stock === 'Bajo'
+                              ? 'rgba(237, 108, 2, 0.1)'
+                              : index % 2 === 0
+                                ? '#f8f9fa'
+                                : 'white',
+                          '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.08)' }
+                        }}
+                      >
+                        <TableCell sx={{ fontWeight: 'bold', color: '#000 !important' }}>{producto.sku}</TableCell>
+                        <TableCell sx={{ color: '#000 !important' }}>{producto.nombre}</TableCell>
+                        <TableCell sx={{ color: '#000 !important' }}>{producto.descripcion}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
+                          {producto.total_stock}
+                        </TableCell>
+                        <TableCell align="right" sx={{ color: '#000 !important' }}>
+                          {formatCurrency(producto.precio_compra, 'USD')}
+                        </TableCell>
+                        <TableCell align="right" sx={{ color: '#000 !important' }}>
+                          {formatCurrency(producto.precio_venta, 'USD')}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={producto.estado_stock}
+                            size="small"
+                            color={
+                              producto.estado_stock === 'Crítico' ? 'error' :
+                                producto.estado_stock === 'Bajo' ? 'warning' :
+                                  'success'
+                            }
+                            variant="filled"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -661,7 +665,7 @@ const ReportesPage = () => {
                     <Typography variant="body1" sx={{ color: '#000 !important' }}>Valor en Compras (USD):</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
                       {formatCurrency(
-                        reporteStock.reduce((acc, p) => acc + (parseFloat(p.precio_compra) * p.total_stock), 0), 
+                        reporteStock.reduce((acc, p) => acc + (parseFloat(p.precio_compra) * p.total_stock), 0),
                         'USD'
                       )}
                     </Typography>
@@ -670,7 +674,7 @@ const ReportesPage = () => {
                     <Typography variant="body1" sx={{ color: '#000 !important' }}>Valor en Ventas (USD):</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
                       {formatCurrency(
-                        reporteStock.reduce((acc, p) => acc + (parseFloat(p.precio_venta) * p.total_stock), 0), 
+                        reporteStock.reduce((acc, p) => acc + (parseFloat(p.precio_venta) * p.total_stock), 0),
                         'USD'
                       )}
                     </Typography>
@@ -684,12 +688,12 @@ const ReportesPage = () => {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: `${brandColor} !important` }}>
                       GANANCIA POTENCIAL:
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1976d2 !important' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: `${brandColor} !important` }}>
                       {formatCurrency(
-                        reporteStock.reduce((acc, p) => acc + ((parseFloat(p.precio_venta) - parseFloat(p.precio_compra)) * p.total_stock), 0), 
+                        reporteStock.reduce((acc, p) => acc + ((parseFloat(p.precio_venta) - parseFloat(p.precio_compra)) * p.total_stock), 0),
                         'USD'
                       )}
                     </Typography>
