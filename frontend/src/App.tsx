@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import LoginPage from './pages/Login';
 import DashboardPage from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import RoleProtectedRoute from './components/RoleProtectedRoute';
 import HistorialPage from './pages/Historial';
 import GestionUsuariosPage from './pages/GestionUsuarios';
 import GestionClientesPage from './pages/GestionClientes';
@@ -26,7 +27,9 @@ function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/historial" element={<HistorialPage />} />
               <Route path="/reportes" element={<ReportesPage />} />
-              <Route path="/admin/usuarios" element={<GestionUsuariosPage />} />
+              <Route element={<RoleProtectedRoute allowedRoles={['admin']} />}>
+                <Route path="/admin/usuarios" element={<GestionUsuariosPage />} />
+              </Route>
               <Route path="/clientes" element={<GestionClientesPage />} />
               <Route path="/clientes/:id" element={<PerfilClientePage />} />
             </Route>

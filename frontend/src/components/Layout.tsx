@@ -30,7 +30,7 @@ const Layout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { mode, toggleTheme } = useCustomTheme();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -64,7 +64,7 @@ const Layout = () => {
             </Box>
 
             <List sx={{ flexGrow: 1, px: 2 }}>
-                {menuItems.map((item) => {
+                {menuItems.filter(item => item.text !== 'Usuarios' || user?.rol === 'admin').map((item) => {
                     const isActive = location.pathname === item.path;
                     return (
                         <ListItemButton
