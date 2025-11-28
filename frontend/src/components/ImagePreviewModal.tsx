@@ -19,7 +19,19 @@ const ImagePreviewModal = ({ imageUrl, onClose }: ImagePreviewModalProps) => {
       aria-labelledby="image-preview-title"
       sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
     >
-      <Box sx={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+      <Box sx={{
+        position: 'relative',
+        width: { xs: '90vw', md: '600px' },
+        height: { xs: '60vh', md: '600px' },
+        bgcolor: 'background.paper',
+        boxShadow: 24,
+        p: 0,
+        borderRadius: 2,
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
         <IconButton
           aria-label="close"
           onClick={onClose}
@@ -27,6 +39,7 @@ const ImagePreviewModal = ({ imageUrl, onClose }: ImagePreviewModalProps) => {
             position: 'absolute',
             top: 8,
             right: 8,
+            zIndex: 1,
             color: 'white',
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
             '&:hover': {
@@ -36,10 +49,10 @@ const ImagePreviewModal = ({ imageUrl, onClose }: ImagePreviewModalProps) => {
         >
           <Icon>close</Icon>
         </IconButton>
-        <img 
-          src={imageUrl} 
-          alt="Vista previa del producto" 
-          style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+        <img
+          src={imageUrl}
+          alt="Vista previa del producto"
+          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
         />
       </Box>
     </Modal>
