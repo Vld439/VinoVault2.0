@@ -57,6 +57,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     severity: 'success',
   });
 
+  const login = (newToken: string) => {
+    localStorage.setItem('authToken', newToken);
+    setToken(newToken);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    setToken(null);
+    setUser(null);
+    delete axiosInstance.defaults.headers.common['Authorization'];
+    window.location.href = '/login';
+  };
+
+  const showNotification = (message: string, severity: AlertColor = 'success') => {
+    setNotification({ open: true, message, severity });
+  };
+
+  const handleCloseNotification = () => {
+    setNotification((prev) => ({ ...prev, open: false }));
+  };
+
   useEffect(() => {
     const fetchUserData = async (currentToken: string) => {
       try {
@@ -79,26 +100,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [token]);
 
-  const login = (newToken: string) => {
-    localStorage.setItem('authToken', newToken);
-    setToken(newToken);
-  };
+  // Interceptor para manejar errores 401 (Token expirado)
+  useEffect(() => {
+    const interceptor = axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          console.warn("Sesión expirada (401). Cerrando sesión...");
+          logout();
+        }
+        return Promise.reject(error);
+      }
+    );
 
-  const logout = () => {
-    localStorage.removeItem('authToken');
-    setToken(null);
-    setUser(null);
-    delete axiosInstance.defaults.headers.common['Authorization'];
-    window.location.href = '/login';
-  };
-
-  const showNotification = (message: string, severity: AlertColor = 'success') => {
-    setNotification({ open: true, message, severity });
-  };
-
-  const handleCloseNotification = () => {
-    setNotification((prev) => ({ ...prev, open: false }));
-  };
+    return () => {
+      axiosInstance.interceptors.response.eject(interceptor);
+    };
+  }, []);
 
   return (
     <AuthContext.Provider value={{
