@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Snackbar, Alert, Box } from '@mui/material';
 import { useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
@@ -37,6 +37,12 @@ function App() {
 
           {/* Ruta por defecto */}
           <Route path="/" element={<LoginPage />} />
+
+          {/* Redirección específica para /usuarios */}
+          <Route path="/usuarios" element={<Navigate to="/admin/usuarios" replace />} />
+
+          {/* Catch-all para rutas desconocidas */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
 
