@@ -1,4 +1,3 @@
-// src/pages/ReportesPage.tsx
 import { useState, useRef, useEffect } from 'react';
 import {
   Container, Typography, Paper, Box, Button, CircularProgress,
@@ -13,10 +12,11 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useAuth, axiosInstance } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/formatCurrency';
-import { useReactToPrint } from 'react-to-print';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import logo from '../assets/logo.png';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Interfaces para los datos del reporte
 interface VentaItem {
@@ -154,10 +154,42 @@ const ReportesPage = () => {
     }
   };
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Reporte-${tabValue === 0 ? 'Ventas' : 'Stock'}-${format(new Date(), 'yyyy-MM-dd')}`
-  });
+  const handleDownloadPDF = async () => {
+    const element = printRef.current;
+    if (!element) return;
+
+    try {
+      setIsLoading(true);
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+      const fileName = `Reporte-${tabValue === 0 ? 'Ventas' : 'Stock'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+      pdf.save(fileName);
+
+      showNotification('Reporte descargado correctamente', 'success');
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      showNotification('Error al generar el PDF', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Calcula los totales del reporte (los datos están en USD, convertimos según la moneda seleccionada)
   const totales = reporte.reduce((acc, venta) => {
@@ -236,10 +268,10 @@ const ReportesPage = () => {
         </Button>
         <Button
           variant="outlined"
-          onClick={handlePrint}
+          onClick={handleDownloadPDF}
           disabled={(tabValue === 0 ? reporte.length === 0 : reporteStock.length === 0)}
         >
-          Imprimir Reporte
+          Descargar PDF
         </Button>
       </Paper>
 
