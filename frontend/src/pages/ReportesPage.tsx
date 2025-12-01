@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
   Container, Typography, Paper, Box, Button, CircularProgress,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Divider, Chip, Tabs, Tab, useTheme
+  Divider, Tabs, Tab, useTheme
 } from '@mui/material';
 import '../assets/print-mobile.css';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -66,7 +66,7 @@ const ReportesPage = () => {
   const [exchangeRates, setExchangeRates] = useState<ExchangeRates | null>(null);
   const { showNotification } = useAuth();
   const { currency } = useCart();
-  const printRef = useRef(null);
+  const printRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
 
   // Determine the primary brand color based on the theme mode
@@ -160,24 +160,112 @@ const ReportesPage = () => {
 
     try {
       setIsLoading(true);
-      const canvas = await html2canvas(element, {
+
+      // 1. Clonar el elemento para manipularlo sin afectar la vista actual
+      const clone = element.cloneNode(true) as HTMLElement;
+      clone.style.width = '1200px'; // Forzar ancho de escritorio
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px';
+      clone.style.left = '-9999px';
+      document.body.appendChild(clone);
+
+      // 2. Configuración de página A4
+      // Ancho forzado: 1200px
+      // Ratio A4: 297/210 = 1.4142
+      // Altura equivalente en px: 1200 * 1.4142 = 1697px
+      // Usamos 1600px para tener un margen de seguridad seguro
+      const PAGE_HEIGHT = 1600;
+      const MARGIN_TOP = 40; // Margen superior para páginas siguientes
+      const MARGIN_BOTTOM = 40; // Margen inferior para seguridad
+
+      // 3. Lógica de "Smart Pagination"
+      let currentY = 0;
+
+      // Iterar sobre los hijos directos del contenedor principal.
+      // Si un hijo es TableContainer (o contiene tabla), iteramos sus filas.
+      Array.from(clone.children).forEach((child) => {
+        const el = child as HTMLElement;
+        const height = el.offsetHeight;
+
+        // Si es la tabla (o su contenedor)
+        if (el.querySelector('table')) {
+          const table = el.querySelector('table') as HTMLTableElement;
+          const tbody = table.querySelector('tbody');
+          if (tbody) {
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            rows.forEach((row) => {
+              const rowHeight = row.offsetHeight;
+              // Verificar si esta fila cruza el límite de página (considerando margen inferior)
+              if (currentY + rowHeight > PAGE_HEIGHT - MARGIN_BOTTOM) {
+                // Calcular spacer: Rellenar lo que queda de página + Margen superior de la siguiente
+                const spacerHeight = (PAGE_HEIGHT - currentY) + MARGIN_TOP;
+
+                // Insertar fila espaciadora transparente
+                const spacerRow = document.createElement('tr');
+                spacerRow.style.height = `${spacerHeight}px`;
+                spacerRow.style.backgroundColor = 'transparent';
+                spacerRow.style.border = 'none';
+                // Crear una celda que ocupe todas las columnas
+                const spacerCell = document.createElement('td');
+                spacerCell.colSpan = 10; // Asegurar que cubra todas las columnas
+                spacerCell.style.border = 'none';
+                spacerCell.style.padding = '0';
+                spacerRow.appendChild(spacerCell);
+
+                // Insertar antes de la fila actual
+                tbody.insertBefore(spacerRow, row);
+
+                // Reiniciar currentY en la nueva página
+                // La fila empieza después del margen superior
+                currentY = MARGIN_TOP + rowHeight;
+              } else {
+                currentY += rowHeight;
+              }
+            });
+          }
+        } else {
+          // Elemento normal
+          if (currentY + height > PAGE_HEIGHT - MARGIN_BOTTOM) {
+            const spacer = (PAGE_HEIGHT - currentY) + MARGIN_TOP;
+            el.style.marginTop = `${spacer}px`;
+            currentY = MARGIN_TOP + height;
+          } else {
+            currentY += height;
+          }
+        }
+      });
+
+      // 4. Generar Canvas del clon modificado
+      const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        windowWidth: 1200
       });
 
+      // Limpiar DOM
+      document.body.removeChild(clone);
+
+      // 5. Generar PDF
       const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 210;
+      const pageHeight = 297; // A4 height en mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      const totalPages = Math.ceil(imgHeight / pageHeight);
+
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       });
 
-      const imgWidth = 210;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      for (let i = 0; i < totalPages; i++) {
+        if (i > 0) pdf.addPage();
+        // La posición Y debe ser negativa para mostrar la parte inferior de la imagen
+        pdf.addImage(imgData, 'PNG', 0, -(i * pageHeight), imgWidth, imgHeight);
+      }
 
       const fileName = `Reporte-${tabValue === 0 ? 'Ventas' : 'Stock'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
       pdf.save(fileName);
@@ -411,12 +499,23 @@ const ReportesPage = () => {
                       <TableCell sx={{ color: '#000 !important' }}>{venta.cliente_nombre}</TableCell>
                       <TableCell sx={{ color: '#000 !important' }}>{venta.vendedor_nombre}</TableCell>
                       <TableCell>
-                        <Chip
-                          label={venta.estado}
-                          size="small"
-                          color={venta.estado === 'Completada' ? 'success' : 'error'}
-                          variant={venta.estado === 'Completada' ? 'filled' : 'outlined'}
-                        />
+                        <span
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '16px',
+                            fontSize: '0.8125rem',
+                            fontWeight: 500,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            minWidth: '80px',
+                            backgroundColor: venta.estado === 'Completada' ? '#2e7d32' : '#d32f2f',
+                            color: '#fff',
+                            border: venta.estado === 'Completada' ? 'none' : '1px solid #d32f2f'
+                          }}
+                        >
+                          {venta.estado}
+                        </span>
                       </TableCell>
                       <TableCell align="right" sx={{ color: '#000 !important' }}>
                         {(() => {
@@ -666,16 +765,25 @@ const ReportesPage = () => {
                           {formatCurrency(producto.precio_venta, 'USD')}
                         </TableCell>
                         <TableCell>
-                          <Chip
-                            label={producto.estado_stock}
-                            size="small"
-                            color={
-                              producto.estado_stock === 'Crítico' ? 'error' :
-                                producto.estado_stock === 'Bajo' ? 'warning' :
-                                  'success'
-                            }
-                            variant="filled"
-                          />
+                          <span
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: '16px',
+                              fontSize: '0.8125rem',
+                              fontWeight: 500,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              minWidth: '80px',
+                              backgroundColor:
+                                producto.estado_stock === 'Crítico' ? '#d32f2f' :
+                                  producto.estado_stock === 'Bajo' ? '#ed6c02' :
+                                    '#2e7d32',
+                              color: '#fff'
+                            }}
+                          >
+                            {producto.estado_stock}
+                          </span>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -716,7 +824,7 @@ const ReportesPage = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body1" sx={{ color: '#000 !important' }}>Total Unidades:</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#000 !important' }}>
-                      {reporteStock.reduce((acc, p) => acc + p.total_stock, 0)} unidades
+                      {reporteStock.reduce((acc, p) => acc + parseInt(p.total_stock.toString()), 0)} unidades
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
